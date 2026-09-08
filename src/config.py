@@ -38,8 +38,10 @@ REGION_COLORS = {
     "남해군": "#eda100",  # yellow
 }
 
-# 양식 방식 (기획서 기준)
-FARMING_METHODS = ["가두리식", "유수식", "지수식"]
+# 양식 방식 (기획서의 3분류를 실제 구현에서 4개로 세분화 - 지수식과 순환여과식(RAS)을
+# 구분. 수온 영향 비율/보정계수는 data/external/farming_methods/farming_method_temp_impact.csv
+# 참고 - 팀 초기 추정치이며 공식 통계 아님, 근거자료 확보되는 대로 갱신 예정)
+FARMING_METHODS = ["해상 가두리식", "육상 유수식", "지수식", "순환여과식(RAS)"]
 
 # 평가지표 계산 시 공통으로 사용할 컬럼명 규칙
 DATE_COL = "date"

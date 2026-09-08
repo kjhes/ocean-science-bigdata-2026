@@ -15,7 +15,9 @@
 ├── data/
 │   ├── raw/                    (원자료는 위 '수온 데이터/' 폴더를 그대로 참조, 여기는 예비용)
 │   ├── processed/               전처리/파싱된 산출물 (예: regional_yearly_summary.csv)
-│   └── external/                어종별 적정조건, 양식방식별 자료
+│   └── external/
+│       ├── species_conditions/   어종별 적정 수온·치사수온 (fish_temperature_thresholds.csv)
+│       └── farming_methods/      양식방식별(가두리/유수/지수식) 위험도 자료 (예정)
 ├── src/
 │   ├── config.py                 지역명/경로/색상 등 공통 설정
 │   ├── data/                     원자료 로딩 (load_data.py, parse_yearly_summary.py)
@@ -37,7 +39,8 @@ jupyter notebook notebooks/01_eda_수온데이터.ipynb
 ## 데이터
 
 - **수온 시계열**: `수온 데이터/{지역(관측소)}/*.csv` — 완도(군의)·여수(신월)·통영(학림)·남해(미조) 4개 관측소, 2021-01-01~2025-12-31 일별 표층 수온(`wtemS`). 자세한 내용은 [`docs/data_sources.md`](docs/data_sources.md).
-- **어종별 적정 환경조건 / 양식방식별 자료**: 아직 수집 전 (`data/external/` 예정 위치, docs/data_sources.md의 액션 아이템 참고)
+- **어종별 적정 환경조건**: [`data/external/species_conditions/fish_temperature_thresholds.csv`](data/external/species_conditions/fish_temperature_thresholds.csv) — 국립수산과학원 자료 기반, 8개 주요 양식 어종(조피볼락·넙치·참돔·감성돔·숭어·농어·돌돔·방어)의 적정수온 범위 및 치사(고수온 위험) 수온. 염분·용존산소·pH는 아직 미확보.
+- **양식방식별 수온 영향 비율**: [`data/external/farming_methods/farming_method_temp_impact.csv`](data/external/farming_methods/farming_method_temp_impact.csv) — 해상 가두리식(100%)·육상 유수식(80%)·지수식(60%)·순환여과식 RAS(30%). ⚠️ 공식 통계가 아닌 팀 초기 추정치, 근거자료 보완 예정 (자세한 내용은 docs/data_sources.md)
 
 ## 팀 (공모전 위탁교육과정)
 
