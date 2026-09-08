@@ -1,0 +1,20 @@
+# 남해안 수온 변화 예측 AI 및 양식방식별 맞춤 어종 추천 모델
+# 데이터 분석 툴: Python, pandas, scikit-learn, matplotlib
+
+# 데이터 처리
+pandas>=2.0
+numpy>=1.24
+openpyxl>=3.1        # 엑셀(.xlsx) 원자료 로딩용
+
+# 시계열 예측
+scikit-learn>=1.3
+statsmodels>=0.14     # ARIMA/SARIMA 등 전통 시계열 모델
+prophet>=1.1          # Facebook Prophet (계절성 있는 수온 데이터에 적합)
+
+# 시각화
+matplotlib>=3.7
+seaborn>=0.12
+
+# 개발 환경
+jupyter>=1.0
+notebook>=7.0
