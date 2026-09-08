@@ -1,0 +1,62 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+import os
+
+# 한글 폰트 설정 (Windows 기준)
+plt.rc('font', family='Malgun Gothic')
+plt.rc('axes', unicode_minus=False)
+
+def analyze_fish_risk():
+    desktop_path = os.path.expanduser("~/Desktop")
+    base_dir = os.path.join(desktop_path, "ㄹ", "수온 데이터")
+    
+    # 어종 데이터 정의
+    fish_data = {
+        '조피볼락(우럭)': {'opt_min': 12, 'opt_max': 21, 'die': 30},
+        '넙치(광어)':     {'opt_min': 21, 'opt_max': 24, 'die': 27},
+        '참돔':           {'opt_min': 20, 'opt_max': 28, 'die': 30},
+        '감성돔':         {'opt_min': 20, 'opt_max': 28, 'die': 30},
+        '숭어':           {'opt_min': 15, 'opt_max': 20, 'die': 30},
+        '농어':           {'opt_min': 10, 'opt_max': 27, 'die': 30},
+        '돌돔':           {'opt_min': 23, 'opt_max': 26, 'die': 30},
+        '방어':           {'opt_min': 22, 'opt_max': 26, 'die': 30}
+    }
+    
+    regions = ['남해', '여수', '완도', '통영']
+    summary_list = []
+    
+    for region in regions:
+        file_path = os.path.join(base_dir, f"{region}_수온_전처리완료_2021_2025.csv")
+        if not os.path.exists(file_path):
+            print(f"[{region}] 전처리 파일을 찾을 수 없습니다: {file_path}")
+            continue
+            
+        df = pd.read_csv(file_path)
+        df['Date'] = pd.to_datetime(df['Date'])
+        
+        for fish_name, info in fish_data.items():
+            opt_days = df[(df['Temp'] >= info['opt_min']) & (df['Temp'] <= info['opt_max'])].shape[0]
+            die_days = df[df['Temp'] >= info['die']].shape[0]
+            
+            summary_list.append({
+                '지역': region,
+                '어종': fish_name,
+                '적정수온 유지일수(5년)': opt_days,
+                '폐사위험일수(5년)': die_days,
+                '연평균 폐사위험일수': round(die_days / 5, 1)
+            })
+            
+    summary_df = pd.DataFrame(summary_list)
+    
+    # 결과 CSV 저장
+    result_csv = os.path.join(base_dir, "어종별_수온_위험도_분석결과.csv")
+    summary_df.to_csv(result_csv, index=False, encoding='utf-8-sig')
+    print(f"✅ 분석 완료! 결과 파일 저장됨: {result_csv}\n")
+    
+    # 요약 출력
+    print("=== 지역별 넙치(광어) & 조피볼락(우럭) 고수온 위험 일수 요약 ===")
+    print(summary_df[summary_df['어종'].isin(['넙치(광어)', '조피볼락(우럭)'])].to_string(index=False))
+
+if __name__ == "__main__":
+    analyze_fish_risk()
