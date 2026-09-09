@@ -40,7 +40,7 @@ jupyter notebook notebooks/01_eda_수온데이터.ipynb
 
 - **수온 시계열**: `수온 데이터/{지역(관측소)}/*.csv` — 완도(군의)·여수(신월)·통영(학림)·남해(미조) 4개 관측소, 2021-01-01~2025-12-31 일별 표층 수온(`wtemS`). 자세한 내용은 [`docs/data_sources.md`](docs/data_sources.md).
 - **어종별 적정 환경조건**: [`data/external/species_conditions/fish_temperature_thresholds.csv`](data/external/species_conditions/fish_temperature_thresholds.csv) — 국립수산과학원 자료 기반, 8개 주요 양식 어종(조피볼락·넙치·참돔·감성돔·숭어·농어·돌돔·방어)의 적정수온 범위 및 치사(고수온 위험) 수온. 염분·용존산소·pH는 아직 미확보.
-- **양식방식별 수온 영향 비율**: [`data/external/farming_methods/farming_method_temp_impact.csv`](data/external/farming_methods/farming_method_temp_impact.csv) — 해상 가두리식(100%)·육상 유수식(80%)·지수식(60%)·순환여과식 RAS(30%). ⚠️ 공식 통계가 아닌 팀 초기 추정치, 근거자료 보완 예정 (자세한 내용은 docs/data_sources.md)
+- **양식방식별 수온 영향 비율**: [`data/external/farming_methods/farming_method_temp_impact.csv`](data/external/farming_methods/farming_method_temp_impact.csv) — 진행 중. 해상 가두리식만 확정(100%, 구조적으로 자명), 육상 유수식·순환여과식(RAS)은 실측 환수율/폐사율은 있으나 0~100% 비율 환산식 미정, 지수식은 자료 미확보. 자세한 내용은 [`docs/data_sources.md`](docs/data_sources.md)
 
 ## 팀 (공모전 위탁교육과정)
 
