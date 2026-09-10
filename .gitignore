@@ -13,3 +13,6 @@ Thumbs.db
 
 # data/raw/ 는 현재 비어있음 (실제 원자료는 저장소 루트의 '수온 데이터/' 폴더 사용)
 # 팀 공유를 위해 원자료·전처리 결과·차트 모두 git에 포함 (data/processed, reports/figures 제외 안 함)
+
+# 전달용 ZIP 패키지 (내용은 저장소에 병합됨)
+*.zip

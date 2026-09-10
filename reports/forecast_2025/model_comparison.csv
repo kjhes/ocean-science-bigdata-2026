@@ -1,0 +1,5 @@
+﻿region,MAE_harmonic_regression,MAE_moving_average,MAE_naive_seasonal,RMSE_harmonic_regression,RMSE_moving_average,RMSE_naive_seasonal,RMSE_improvement_pct
+남해군,1.43,6.1465,1.8186,1.7382,7.4425,2.4586,29.301228341332475
+여수,1.1744,9.6666,1.8507,1.3966,12.0042,2.2882,38.965125426099114
+완도,1.2137,9.892,1.7516,1.4746,12.1912,2.135,30.93208430913349
+통영,1.4819,5.3281,2.0926,1.7553,6.5882,2.6501,33.76476359382665

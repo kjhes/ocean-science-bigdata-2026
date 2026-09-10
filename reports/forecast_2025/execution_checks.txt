@@ -1,0 +1,14 @@
+[완도] 연도 경계 중복 3건 제거
+[여수] 연도 경계 중복 3건 제거
+[통영] 연도 경계 중복 3건 제거
+[남해군] 연도 경계 중복 3건 제거
+EDA code cells: PASS
+EDA missing after short-gap handling: 186
+Summary parser: 24 rows
+            model  n_scored     MAE     RMSE
+0  naive_seasonal       345  1.7516   2.1350
+1  moving_average       345  9.8920  12.1912
+Notebook cells executed with Python exec; Jupyter kernel not installed/tested.
+Full rerun: CSV byte hashes identical.
+4380 prediction rows; only 2025; unique date/region/model.
+All 24 metric rows independently recalculated from saved predictions.

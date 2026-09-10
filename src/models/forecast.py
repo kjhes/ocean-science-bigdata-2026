@@ -38,15 +38,17 @@ def evaluate(y_true, y_pred) -> dict:
     return {"MAE": round(mae, 4), "RMSE": round(rmse, 4)}
 
 
-def naive_seasonal_forecast(train: pd.DataFrame, test: pd.DataFrame, period_days: int = 365) -> np.ndarray:
-    """작년 같은 날짜의 수온을 그대로 예측값으로 사용하는 베이스라인."""
+def naive_seasonal_forecast(train: pd.DataFrame, test: pd.DataFrame, period_days=None) -> np.ndarray:
+    """작년 같은 달/일. 해당 관측이 없으면 NaN (가까운 날로 임의 대체 안 함).
+
+    period_days를 명시하면 고정 일수 지연을 사용한다. 기본은 윤년을 고려한
+    달력 1년 전이며, 2월 29일은 pandas DateOffset 규칙상 2월 28일에 대응한다.
+    """
     train_idx = train.set_index(DATE_COL)[TEMP_COL]
-    preds = []
-    for d in test[DATE_COL]:
-        ref_date = d - pd.Timedelta(days=period_days)
-        nearest = train_idx.index[np.argmin(np.abs((train_idx.index - ref_date).days))]
-        preds.append(train_idx.loc[nearest])
-    return np.array(preds)
+    if not train_idx.index.is_unique:
+        raise ValueError("지역별 중복 날짜를 먼저 해결하세요.")
+    offset = pd.DateOffset(years=1) if period_days is None else pd.Timedelta(days=period_days)
+    return train_idx.reindex(pd.DatetimeIndex(test[DATE_COL]) - offset).to_numpy(dtype=float)
 
 
 def moving_average_forecast(train: pd.DataFrame, horizon: int, window: int = 7) -> np.ndarray:
@@ -93,10 +95,12 @@ def compare_models(train: pd.DataFrame, test: pd.DataFrame) -> pd.DataFrame:
     y_true = test[TEMP_COL].values
 
     naive_pred = naive_seasonal_forecast(train, test)
-    results.append({"model": "naive_seasonal", **evaluate(y_true, naive_pred)})
-
     ma_pred = moving_average_forecast(train, horizon=len(test))
-    results.append({"model": "moving_average", **evaluate(y_true, ma_pred)})
+    mask = np.isfinite(y_true) & np.isfinite(naive_pred) & np.isfinite(ma_pred)
+    if not mask.any():
+        raise ValueError("공통으로 평가 가능한 실제 관측일이 없습니다.")
+    for name, pred in [("naive_seasonal", naive_pred), ("moving_average", ma_pred)]:
+        results.append({"model": name, "n_scored": int(mask.sum()), **evaluate(y_true[mask], pred[mask])})
 
     # SARIMA, Prophet은 연산량이 크므로 필요 시 주석 해제하여 사용
     # sarima_pred = sarima_forecast(train, horizon=len(test))

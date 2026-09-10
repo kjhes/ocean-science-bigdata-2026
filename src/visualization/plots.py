@@ -16,7 +16,28 @@ from config import DATE_COL, REGION_COL, TEMP_COL, FIGURES_DIR, REGIONS, REGION_
 sns.set_theme(style="whitegrid")
 plt.rcParams["axes.unicode_minus"] = False
 # 한글 폰트: 환경에 맞는 폰트로 조정 필요 (Windows 기준 'Malgun Gothic')
-plt.rcParams["font.family"] = "Malgun Gothic"
+from matplotlib import font_manager
+_available_fonts = {f.name for f in font_manager.fontManager.ttflist}
+_korean_font = next((f for f in ["Malgun Gothic", "AppleGothic", "NanumGothic", "Noto Sans CJK KR"] if f in _available_fonts), None)
+plt.rcParams["font.family"] = _korean_font or "DejaVu Sans"
+FIGURES_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _label(value):
+    if _korean_font:
+        return value
+    translations = {"완도": "Wando", "여수": "Yeosu", "통영": "Tongyeong", "남해군": "Namhae",
+                    "지역별 수온 변화 추이": "Regional surface temperature", "날짜": "Date",
+                    "수온 (℃)": "Temperature (°C)", "월": "Month", "평균": "Mean", "최고": "Maximum",
+                    "지역별 평균/최고 수온 비교": "Regional mean and maximum temperature",
+                    "연도": "Year", "고수온 경보 일수": "High-temperature alert days (source summary)",
+                    "지역별 연도별 고수온 경보 발생 일수": "Alert days reported in source summary",
+                    "실제": "Observed", "예측": "Forecast", "예측 vs 실제": "Forecast vs observed"}
+    for korean, english in [("월별 수온 분포", "monthly temperature distribution")]:
+        value = value.replace(korean, english)
+    for korean in ["완도", "여수", "통영", "남해군"]:
+        value = value.replace(korean, translations[korean])
+    return translations.get(value, value)
 # 그리드/축은 은은하게 (recessive grid) - 데이터가 주인공이 되도록
 plt.rcParams["grid.color"] = "#e1e0d9"
 plt.rcParams["axes.edgecolor"] = "#c3c2b7"
@@ -33,11 +54,11 @@ def plot_region_trend(df: pd.DataFrame, save: bool = False, filename: str = "reg
         g = df[df[REGION_COL] == region]
         if g.empty:
             continue
-        ax.plot(g[DATE_COL], g[TEMP_COL], label=region, linewidth=1.3,
+        ax.plot(g[DATE_COL], g[TEMP_COL], label=_label(region), linewidth=1.3,
                  color=REGION_COLORS.get(region))
-    ax.set_title("지역별 수온 변화 추이")
-    ax.set_xlabel("날짜")
-    ax.set_ylabel("수온 (℃)")
+    ax.set_title(_label("지역별 수온 변화 추이"))
+    ax.set_xlabel(_label("날짜"))
+    ax.set_ylabel(_label("수온 (℃)"))
     ax.legend()
     fig.tight_layout()
     if save:
@@ -51,9 +72,9 @@ def plot_monthly_boxplot(df: pd.DataFrame, region: str, save: bool = False):
     sub["month"] = sub[DATE_COL].dt.month
     fig, ax = plt.subplots(figsize=(10, 5))
     sns.boxplot(data=sub, x="month", y=TEMP_COL, ax=ax)
-    ax.set_title(f"{region} 월별 수온 분포")
-    ax.set_xlabel("월")
-    ax.set_ylabel("수온 (℃)")
+    ax.set_title(_label(f"{region} 월별 수온 분포"))
+    ax.set_xlabel(_label("월"))
+    ax.set_ylabel(_label("수온 (℃)"))
     fig.tight_layout()
     if save:
         fig.savefig(FIGURES_DIR / f"{region}_monthly_boxplot.png", dpi=150)
@@ -68,12 +89,12 @@ def plot_region_comparison_bar(summary_df: pd.DataFrame, save: bool = False):
     """
     fig, ax = plt.subplots(figsize=(8, 5))
     x = range(len(summary_df))
-    ax.bar([i - 0.2 for i in x], summary_df["mean"], width=0.4, label="평균", color="#2a78d6")
-    ax.bar([i + 0.2 for i in x], summary_df["max"], width=0.4, label="최고", color="#9ec5f4")
+    ax.bar([i - 0.2 for i in x], summary_df["mean"], width=0.4, label=_label("평균"), color="#2a78d6")
+    ax.bar([i + 0.2 for i in x], summary_df["max"], width=0.4, label=_label("최고"), color="#9ec5f4")
     ax.set_xticks(list(x))
-    ax.set_xticklabels(summary_df[REGION_COL])
-    ax.set_ylabel("수온 (℃)")
-    ax.set_title("지역별 평균/최고 수온 비교")
+    ax.set_xticklabels(summary_df[REGION_COL].map(_label))
+    ax.set_ylabel(_label("수온 (℃)"))
+    ax.set_title(_label("지역별 평균/최고 수온 비교"))
     ax.legend()
     fig.tight_layout()
     if save:
@@ -97,12 +118,12 @@ def plot_high_temp_alert_days(yearly_summary_df: pd.DataFrame, save: bool = Fals
     for i, region in enumerate(REGIONS):
         g = sub[sub[REGION_COL] == region].set_index("year").reindex(years)
         offsets = [y - 0.4 + width * i + width / 2 for y in years]
-        ax.bar(offsets, g["high_temp_alert_days"], width=width, label=region,
+        ax.bar(offsets, g["high_temp_alert_days"], width=width, label=_label(region),
                color=REGION_COLORS.get(region))
     ax.set_xticks(years)
-    ax.set_xlabel("연도")
-    ax.set_ylabel("고수온 경보 일수")
-    ax.set_title("지역별 연도별 고수온 경보 발생 일수")
+    ax.set_xlabel(_label("연도"))
+    ax.set_ylabel(_label("고수온 경보 일수"))
+    ax.set_title(_label("지역별 연도별 고수온 경보 발생 일수"))
     ax.legend()
     fig.tight_layout()
     if save:
@@ -113,11 +134,11 @@ def plot_high_temp_alert_days(yearly_summary_df: pd.DataFrame, save: bool = Fals
 def plot_forecast_vs_actual(dates, y_true, y_pred, title: str = "예측 vs 실제", save: bool = False, filename: str = "forecast_vs_actual.png"):
     """예측 모델 검증용: 실제값과 예측값 비교 플롯."""
     fig, ax = plt.subplots(figsize=(12, 5))
-    ax.plot(dates, y_true, label="실제", linewidth=1.5)
-    ax.plot(dates, y_pred, label="예측", linewidth=1.5, linestyle="--")
-    ax.set_title(title)
-    ax.set_xlabel("날짜")
-    ax.set_ylabel("수온 (℃)")
+    ax.plot(dates, y_true, label=_label("실제"), linewidth=1.5)
+    ax.plot(dates, y_pred, label=_label("예측"), linewidth=1.5, linestyle="--")
+    ax.set_title(_label(title))
+    ax.set_xlabel(_label("날짜"))
+    ax.set_ylabel(_label("수온 (℃)"))
     ax.legend()
     fig.tight_layout()
     if save:

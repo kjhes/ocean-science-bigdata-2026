@@ -1,0 +1,59 @@
+{
+  "upstream_commit": "eb32630eea425efe538c962f7878aa2108f248d2",
+  "forecast_origin": "2024-12-31",
+  "test_period": [
+    "2025-01-01",
+    "2025-12-31"
+  ],
+  "validation": "train 2021-2023 / validate 2024; then refit 2021-2024",
+  "selection_metric": "2024 RMSE; ties prefer fewer harmonics, no trend",
+  "selected_settings": {
+    "완도": {
+      "harmonics": 6,
+      "trend": false
+    },
+    "여수": {
+      "harmonics": 2,
+      "trend": false
+    },
+    "통영": {
+      "harmonics": 4,
+      "trend": false
+    },
+    "남해군": {
+      "harmonics": 6,
+      "trend": false
+    }
+  },
+  "missing_policy": "no imputation; fit observed; evaluate observed",
+  "duplicate_policy": "sorted file names, keep first (upstream convention); report conflicts",
+  "python": "3.12.14",
+  "versions": {
+    "pandas": "2.2.3",
+    "numpy": "2.3.5",
+    "scikit-learn": "1.8.0",
+    "matplotlib": "3.10.8"
+  },
+  "input_sha256": {
+    "완도(군의)/완도 2021~.csv": "b74561ecc01ecd5889afaaa1a23c29b9c23ddde35e49764abbb7cf0e2790937c",
+    "완도(군의)/완도 2022~.csv": "6ccb395c411f6dee82ee1e0d357c81a89007d64ded036d400fe7dcd3b1c0ac5b",
+    "완도(군의)/완도 2023~.csv": "04b1817994e2f55c6e6299a5e711eff80e54df21cf28c45f864088538bde99f6",
+    "완도(군의)/완도 2024~.csv": "5cd82de34735ecb37d820f109c04a3d997427e19382eb10eb23a4951b45e9326",
+    "완도(군의)/완도 2025~.csv": "ef2a81b9df55d25a8382fd7f7f0b04dff69465edaca55b82df5fc87d10eac88f",
+    "여수(신월)/여수 2021~.csv": "67186084caf501d597443c66b14d8b6932262c0548bdbc864ccb1cdd9494caeb",
+    "여수(신월)/여수 2022~.csv": "b25cfe98671c7b38a44a88952f3fb4b2241c953bae8bd8d2279a8a9f48af4a4f",
+    "여수(신월)/여수 2023~.csv": "14bf66b7e0c297453ab603a42ab2f798f49f13aa3de596fbe264a76521cadf0c",
+    "여수(신월)/여수 2024~.csv": "cbca48114a81ebda32f365f325f2ebf79a0bfc9c6d7869af2af26ce39e1adf39",
+    "여수(신월)/여수 2025~.csv": "f488de0502248d7b36f04bc51e26aeac527fce285abb73bbf57a48b7967c3245",
+    "통영(학림)/통영 2021~.csv": "cfdcfed69ba84791f6b1d45033c3c5323bb451d848aa31591261531f01451e93",
+    "통영(학림)/통영 2022~.csv": "0cc0b1fb6cf47b4f64c594131797c7acb5684b64f7b306b6bce640e3cb0a5127",
+    "통영(학림)/통영 2023~.csv": "4f6003e03b36f3917b53e744a0d406d68084a908752826e9f04c26534afdacc1",
+    "통영(학림)/통영 2024~.csv": "ce874524f7d036526d8f659a2c541633255479aae63418c740204c0eaead5688",
+    "통영(학림)/통영 2025~.csv": "9019d424a0d734befe9c2ebebd81c2091dc8d1448b6adc266bc8f66583a51e3c",
+    "남해(미조)/남해 2021~.csv": "801ff664f2da0e8b4a9534041960d033e46abc29ee4d24d235e3341fdfcf85bd",
+    "남해(미조)/남해 2022~.csv": "79790cd11976d139c91274d3403fa73f65b85cecfba82e4bc67e3dddeccfa0ed",
+    "남해(미조)/남해 2023~.csv": "1804238f589322911c99ccfdf180db7c82ddb269f6a59a33d05590470f87bb19",
+    "남해(미조)/남해 2024~.csv": "3bbfb2484cf89ba401595af8b5ece03ce5dfbac231284e51fec1e69447df2016",
+    "남해(미조)/남해 2025~.csv": "5161665a89426ed8f12c18e57261a4e8160babb65da51c2b96e3024a502431ff"
+  }
+}

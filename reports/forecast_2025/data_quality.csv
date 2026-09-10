@@ -1,0 +1,9 @@
+﻿region,split,n_days,n_observed,n_missing,max_gap_days,n_outside_period
+완도,training,1461,1398,63,17,1
+완도,test,365,348,17,17,1
+여수,training,1461,1411,50,30,1
+여수,test,365,337,28,26,1
+통영,training,1461,1458,3,2,1
+통영,test,365,365,0,0,1
+남해군,training,1461,1418,43,38,1
+남해군,test,365,365,0,0,1

@@ -20,14 +20,16 @@ def sort_by_date(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values([REGION_COL, DATE_COL]).reset_index(drop=True)
 
 
-def handle_missing_values(df: pd.DataFrame, method: str = "interpolate") -> pd.DataFrame:
+def handle_missing_values(df: pd.DataFrame, method: str = "interpolate", max_gap: int = 3) -> pd.DataFrame:
     """결측치 처리.
 
     method:
-        "interpolate" : 지역별 시간순 선형 보간 (기본값, 시계열에 적합)
+        "interpolate" : 양 끝 관측이 있는 최대 max_gap일 구간만 보간 (EDA용)
         "drop"        : 결측 행 제거
         "ffill"       : 직전 값으로 채움
     """
+    if max_gap < 1:
+        raise ValueError("max_gap은 1 이상이어야 합니다.")
     df = sort_by_date(df)
     if method == "drop":
         return df.dropna(subset=[TEMP_COL])
@@ -35,10 +37,17 @@ def handle_missing_values(df: pd.DataFrame, method: str = "interpolate") -> pd.D
     filled = []
     for region, g in df.groupby(REGION_COL):
         g = g.set_index(DATE_COL)
+        # 날짜 행 자체가 빠진 경우도 결측으로 포함한다.
+        g = g.reindex(pd.date_range(g.index.min(), g.index.max(), freq="D"))
+        g.index.name = DATE_COL
         if method == "interpolate":
-            g[TEMP_COL] = g[TEMP_COL].interpolate(method="time")
+            missing = g[TEMP_COL].isna()
+            groups = missing.ne(missing.shift()).cumsum()
+            lengths = missing.groupby(groups).transform("sum")
+            candidate = g[TEMP_COL].interpolate(method="time", limit_area="inside")
+            g.loc[missing & (lengths <= max_gap), TEMP_COL] = candidate
         elif method == "ffill":
-            g[TEMP_COL] = g[TEMP_COL].ffill()
+            g[TEMP_COL] = g[TEMP_COL].ffill(limit=max_gap)
         else:
             raise ValueError(f"알 수 없는 method: {method}")
         g = g.reset_index()
@@ -94,9 +103,12 @@ def region_summary(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def preprocess_pipeline(df: pd.DataFrame) -> pd.DataFrame:
-    """원자료 -> 정제된 데이터까지 한 번에 처리하는 표준 파이프라인."""
+    """EDA 전용: 긴 결측과 극값을 보존한다. 예측 평가에는 사용하지 않는다.
+
+    max_gap=3은 연구용 표시 규칙이며 공식적인 보간 허용 기준이 아니다.
+    예측은 run_forecast.py에서 분할 후 관측값만 학습한다.
+    """
     df = sort_by_date(df)
     df = handle_missing_values(df, method="interpolate")
-    df = remove_outliers_iqr(df)
     df = add_calendar_features(df)
     return df

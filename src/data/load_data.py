@@ -24,6 +24,7 @@ from pathlib import Path
 from typing import Optional
 
 import pandas as pd
+import warnings
 
 import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
@@ -72,6 +73,11 @@ def load_raw_temperature(region: str, raw_dir: Optional[Path] = None) -> pd.Data
 
     raw = pd.concat(frames, ignore_index=True)
     raw[RAW_DATE_COL] = pd.to_datetime(raw[RAW_DATE_COL])
+    raw[RAW_SURFACE_COL] = pd.to_numeric(raw[RAW_SURFACE_COL], errors="raise")
+    conflicts = raw.groupby(RAW_DATE_COL)[RAW_SURFACE_COL].nunique(dropna=False)
+    if (conflicts > 1).any():
+        warnings.warn(f"{region}: 중복 날짜의 수온 불일치 {(conflicts > 1).sum()}일. "
+                      "기존 규칙(파일명 정렬 후 첫 값)을 유지합니다. 원자료 확인 필요.", stacklevel=2)
 
     out = pd.DataFrame({
         DATE_COL: raw[RAW_DATE_COL],
