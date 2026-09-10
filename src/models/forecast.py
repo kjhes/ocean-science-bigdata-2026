@@ -57,6 +57,37 @@ def moving_average_forecast(train: pd.DataFrame, horizon: int, window: int = 7) 
     return np.full(horizon, last_avg)
 
 
+def climatology_forecast(train: pd.DataFrame, test: pd.DataFrame, window: int = 3) -> np.ndarray:
+    """평년값(climatology) 예측: 각 날짜를 '과거 같은 시기(±window일) 관측치의 평균'으로 예측한다.
+
+    가장 단순하고 설명하기 쉬운 계절 예측 방법. 학습 기간의 모든 연도를 모아
+    달력상 같은 날짜 부근의 평균을 낸다. 윤년은 3월 이후를 하루 당겨 비윤년
+    기준으로 통일한다. 연 경계(12월<->1월)도 순환으로 이어 붙인다.
+
+    한계: 매년 '평년 곡선'을 그대로 반복할 뿐, 최근 추세나 그 해의 이상값
+    (갑작스러운 고수온 등)에 반응하지 못한다.
+    """
+    def ref_doy(dates: pd.Series) -> np.ndarray:
+        s = pd.DatetimeIndex(dates)
+        doy = s.dayofyear.to_numpy().astype(float)
+        doy[(s.is_leap_year) & (s.month > 2)] -= 1
+        return doy
+
+    obs = train.dropna(subset=[TEMP_COL])
+    train_doy = ref_doy(obs[DATE_COL])
+    train_temp = obs[TEMP_COL].to_numpy(dtype=float)
+    test_doy = ref_doy(test[DATE_COL])
+
+    preds = np.full(len(test_doy), np.nan)
+    for i, day in enumerate(test_doy):
+        diff = np.abs(train_doy - day)
+        diff = np.minimum(diff, 365 - diff)  # 연 경계 순환
+        near = diff <= window
+        if near.any():
+            preds[i] = train_temp[near].mean()
+    return preds
+
+
 def sarima_forecast(train: pd.DataFrame, horizon: int, order=(1, 1, 1), seasonal_order=(1, 1, 1, 365)):
     """statsmodels SARIMA 예측.
 

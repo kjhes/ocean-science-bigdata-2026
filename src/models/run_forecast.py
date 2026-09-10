@@ -17,10 +17,13 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import ROOT_DIR, RAW_TEMP_DIR, REGION_FOLDER_MAP, REGIONS
 from data.load_data import load_raw_temperature
-from models.forecast import evaluate, naive_seasonal_forecast, moving_average_forecast
+from models.forecast import (evaluate, naive_seasonal_forecast, moving_average_forecast,
+                             climatology_forecast)
 from models.harmonic import HarmonicRegression
 
 SLUGS = dict(zip(REGIONS, ['wando', 'yeosu', 'tongyeong', 'namhae']))
+MODEL_COLORS = {'climatology': '#2a78d6', 'naive_seasonal': '#898781',
+                'moving_average': '#c9c6bd', 'harmonic_regression': '#1baf7a'}
 
 
 def gap_table(series, region):
@@ -72,6 +75,7 @@ def fit_predict(series):
     train_df = train.rename('temperature').rename_axis('date').reset_index()
     test_df = test.rename('temperature').rename_axis('date').reset_index()
     predictions = {
+        'climatology': climatology_forecast(train_df, test_df, window=3),
         'naive_seasonal': naive_seasonal_forecast(train_df, test_df),
         'moving_average': moving_average_forecast(train_df, len(test), window=7),
         'harmonic_regression': harmonic.predict(test.index),
@@ -133,7 +137,7 @@ def run(regions, raw_dir=RAW_TEMP_DIR, output=None):
     common_df = metric_df.query("scope == 'common_dates'")
     comparison = common_df.pivot(index='region', columns='model', values=['MAE','RMSE'])
     comparison.columns = ['_'.join(c) for c in comparison.columns]
-    comparison['RMSE_improvement_pct'] = 100 * (1 - comparison.RMSE_harmonic_regression / comparison.RMSE_naive_seasonal)
+    comparison['RMSE_improvement_pct'] = 100 * (1 - comparison.RMSE_climatology / comparison.RMSE_naive_seasonal)
     comparison.to_csv(output / 'model_comparison.csv', encoding='utf-8-sig')
     plot_comparison(common_df, output)
     inputs = {str(p.relative_to(raw_dir)): hashlib.sha256(p.read_bytes()).hexdigest()
@@ -158,9 +162,8 @@ def plot_region(region, actual, preds, output):
     import matplotlib.pyplot as plt
     fig, ax = plt.subplots(figsize=(12, 4.8))
     ax.plot(actual.index, actual, color='#222222', lw=1.3, label='Observed (gaps preserved)')
-    colors = ['#d9822b','#979797','#2676bd']
-    for (name, pred), color in zip(preds.items(), colors):
-        ax.plot(actual.index, pred, label=name.replace('_',' '), color=color, lw=1.1,
+    for name, pred in preds.items():
+        ax.plot(actual.index, pred, label=name.replace('_',' '), color=MODEL_COLORS.get(name), lw=1.1,
                 alpha=0.9, linestyle='--' if name=='moving_average' else '-')
     ax.set(title=f'{SLUGS[region].title()} | 2025 forecast made on 2024-12-31', ylabel='Surface temperature (°C)', xlabel='Date')
     ax.grid(alpha=.18); ax.legend(loc='upper left', ncol=2, fontsize=8)
@@ -172,7 +175,7 @@ def plot_comparison(metrics, output):
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.5))
     for ax, score in zip(axes, ['MAE','RMSE']):
         table = metrics.pivot(index='region', columns='model', values=score).rename(index=SLUGS)
-        table.plot.bar(ax=ax, color=['#2676bd','#979797','#d9822b'], rot=0)
+        table.plot.bar(ax=ax, color=[MODEL_COLORS.get(c) for c in table.columns], rot=0)
         ax.set(title=f'{score} on common observed dates', ylabel='Error (°C)', xlabel='Region')
         ax.grid(axis='y',alpha=.18)
         ax.get_legend().remove()
