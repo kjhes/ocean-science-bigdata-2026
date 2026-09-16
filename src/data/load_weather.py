@@ -9,15 +9,21 @@
 
 2026-09-16 데이터 점검 결과 (수동 검증, scratch 분석):
     - 기온·풍속·풍향: 결측 거의 없음 (연 8760시간 중 0~수백 건) → 사용 가능
-    - 강수량: 결측 약 90%. "결측=무강수(0mm)"로 가정했으나 실제 데이터에 0.0이
-      명시적으로도 기록되어 있어(예: 여수 2021년 329건) 이 가정이 틀렸음을 확인.
-      공란의 정확한 의미가 아직 불명확 → 이 모듈에서는 강수량을 불러오되
-      집계 시 기본적으로 사용하지 않음 (보류 상태, docs/기상데이터_점검.md 참고)
+    - 강수량: 결측 약 90%. 처음엔 "결측=무강수(0mm)"로 가정했다가, 명시적 0.0도
+      따로 기록되어 있어(예: 여수 2021년 329건) 한 번 기각했음. 이후 두 가지로
+      재검증해 결론을 뒤집음:
+        1) 월별 결측률이 뚜렷한 계절 패턴을 보임 (겨울 95~97% vs 장마·태풍철인
+           여름 84~87%) — 비가 잦은 계절일수록 결측이 줄어듦
+        2) 실제 기록된 폭우 사건으로 대조 검증: 2023년 7월 전남 집중호우 기간
+           (완도 합계 37.6mm, 여수 85.8mm 기록), 2022년 태풍 힌남노 상륙 기간
+           (남해 최대 시간당 60.2mm·합계 299.8mm로 상륙지 부산과 가장 가까운
+           남해가 제일 크게 기록 - 지리적으로 정합적)
+      → **결측 = 무강수(0mm)로 최종 확정.** 아래 집계에서 결측을 0으로 채워 사용.
     - 일사량: 지역별로 관측 시작 시점이 다름 (남해는 5년 내내 전무, 완도는
       2024년부터, 통영은 2023년부터, 여수만 비교적 온전) → 4개 지역 공통
       변수로 사용 불가. 지역별로 가용 여부가 다르다는 점을 반드시 확인하고 써야 함.
 
-이 파일은 우선 기온·풍속·풍향만 일별로 집계해 반환한다.
+이 파일은 기온·풍속·풍향·강수량을 일별로 집계해 반환한다.
 """
 from pathlib import Path
 from typing import Optional
@@ -46,6 +52,10 @@ RAW_RAIN_COL = "강수량(mm)"
 RAW_WIND_SPEED_COL = "풍속(m/s)"
 RAW_WIND_DIR_COL = "풍향(16방위)"
 RAW_SOLAR_COL = "일사(MJ/m2)"
+
+# 결측=무강수(0mm)로 확정됨 (모듈 설명 참고). 명시적으로 상수화해 왜 0으로
+# 채우는지 나중에 코드만 봐도 알 수 있게 한다.
+RAIN_NA_MEANS_ZERO = True
 
 
 def load_raw_weather(region: str, weather_dir: Optional[Path] = None) -> pd.DataFrame:
@@ -88,20 +98,25 @@ def load_daily_weather(region: str, weather_dir: Optional[Path] = None,
     """시간자료를 일별로 집계한다.
 
     반환 컬럼: date, region, air_temp_mean, air_temp_min, air_temp_max,
-               wind_speed_mean, wind_dir_mean_deg (+ include_solar=True 시 solar_sum)
+               wind_speed_mean, wind_dir_mean_deg, rain_sum
+               (+ include_solar=True 시 solar_sum)
 
-    강수량은 공란의 의미가 아직 불명확하여(위 모듈 설명 참고) 기본 집계에서 제외한다.
+    강수량 결측은 무강수(0mm)로 확정되어 0으로 채운 뒤 일별 합계를 낸다
+    (위 모듈 설명의 계절 패턴·실제 호우 사건 대조 검증 참고).
     일사량은 지역별 가용 기간이 달라 기본값은 제외(include_solar=False); 필요 시
     해당 지역의 관측 시작 연도를 반드시 확인하고 사용할 것.
     """
     raw = load_raw_weather(region, weather_dir)
     raw["date"] = raw["datetime"].dt.floor("D")
+    if RAIN_NA_MEANS_ZERO:
+        raw[RAW_RAIN_COL] = raw[RAW_RAIN_COL].fillna(0.0)
 
     daily = raw.groupby("date").agg(
         air_temp_mean=(RAW_TEMP_COL, "mean"),
         air_temp_min=(RAW_TEMP_COL, "min"),
         air_temp_max=(RAW_TEMP_COL, "max"),
         wind_speed_mean=(RAW_WIND_SPEED_COL, "mean"),
+        rain_sum=(RAW_RAIN_COL, "sum"),
     )
     wind_dir = raw.groupby("date")[RAW_WIND_DIR_COL].apply(_circular_mean_deg)
     daily["wind_dir_mean_deg"] = wind_dir

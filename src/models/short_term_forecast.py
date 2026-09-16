@@ -32,7 +32,7 @@ TEST_RANGE = ("2024-01-01", "2025-12-31")
 FEATURE_COLS = [
     "sea_temp_lag1", "sea_temp_lag2", "sea_temp_lag3",
     "air_temp_mean_lag1", "air_temp_min_lag1", "air_temp_max_lag1",
-    "wind_speed_mean_lag1", "doy_sin", "doy_cos",
+    "wind_speed_mean_lag1", "rain_sum_lag1", "doy_sin", "doy_cos",
 ]
 
 
@@ -40,7 +40,7 @@ def build_region_dataset(region: str) -> pd.DataFrame:
     """지역 하나의 수온+기상 일별 데이터를 병합하고 lag 피처를 만든다."""
     sea = load_raw_temperature(region)[[DATE_COL, TEMP_COL]].rename(columns={TEMP_COL: "sea_temp"})
     weather = load_daily_weather(region)[[DATE_COL, "air_temp_mean", "air_temp_min", "air_temp_max",
-                                           "wind_speed_mean", "wind_dir_mean_deg"]]
+                                           "wind_speed_mean", "wind_dir_mean_deg", "rain_sum"]]
     df = sea.merge(weather, on=DATE_COL, how="inner").sort_values(DATE_COL).reset_index(drop=True)
 
     df["sea_temp_lag1"] = df["sea_temp"].shift(1)
@@ -50,6 +50,7 @@ def build_region_dataset(region: str) -> pd.DataFrame:
     df["air_temp_min_lag1"] = df["air_temp_min"].shift(1)
     df["air_temp_max_lag1"] = df["air_temp_max"].shift(1)
     df["wind_speed_mean_lag1"] = df["wind_speed_mean"].shift(1)
+    df["rain_sum_lag1"] = df["rain_sum"].shift(1)
 
     doy = df[DATE_COL].dt.dayofyear
     df["doy_sin"] = np.sin(2 * np.pi * doy / 365.25)
