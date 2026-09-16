@@ -1,0 +1,5 @@
+﻿region,n_days,level_match_rate,n_actual_warnings,warning_recall
+완도,731,0.94,71,0.761
+여수,731,0.973,59,0.898
+통영,731,0.934,64,0.797
+남해군,731,0.964,45,0.867

@@ -50,6 +50,40 @@ def climatology_lookup(df: pd.DataFrame, window: int = 3) -> pd.Series:
     return pd.Series(clim, index=df.index)
 
 
+def classify_series(dates: pd.Series, temps: pd.Series, climatology: pd.Series) -> pd.DataFrame:
+    """날짜·수온·(외부에서 주어진) 평년값 세 시리즈로 경보 단계를 판정하는 저수준 함수.
+
+    실제 관측치와 예측치를 **같은 평년값 기준선**으로 공정하게 비교할 수 있도록,
+    평년값을 이 함수 밖에서 계산해 넣도록 분리했다 (classify_region은 이 함수를
+    감싸는 편의 함수).
+    """
+    out = pd.DataFrame({DATE_COL: dates, TEMP_COL: temps, "climatology": climatology}).reset_index(drop=True)
+    out["anomaly"] = out[TEMP_COL] - out["climatology"]
+    out["daily_jump"] = out[TEMP_COL].diff()
+
+    ge28 = out[TEMP_COL] >= TEMP_THRESHOLD
+    out["sustained_ge28"] = ge28.rolling(ALERT_SUSTAIN_DAYS, min_periods=ALERT_SUSTAIN_DAYS).apply(
+        lambda w: bool(np.all(w)), raw=True).fillna(0).astype(bool)
+
+    is_alert = (
+        out["sustained_ge28"]
+        | (out["daily_jump"] >= ALERT_JUMP)
+        | (out["anomaly"] >= ALERT_ANOMALY)
+    )
+    is_warning = (
+        ge28
+        | (out["daily_jump"] >= WARNING_JUMP)
+        | (out["anomaly"] >= WARNING_ANOMALY)
+    )
+
+    out["level"] = 0
+    out.loc[is_warning, "level"] = 2
+    out.loc[is_alert, "level"] = 3
+    out["level_name"] = out["level"].map({0: "평시", 2: "주의보", 3: "경보"})
+    out.loc[out[TEMP_COL].isna(), ["level", "level_name"]] = [np.nan, "판정불가"]
+    return out
+
+
 def classify_region(df: pd.DataFrame) -> pd.DataFrame:
     """지역 하나의 일별 수온 df(date, temperature)를 받아 경보 단계를 붙인다.
 
@@ -57,33 +91,8 @@ def classify_region(df: pd.DataFrame) -> pd.DataFrame:
                     level (0=평시, 2=주의보, 3=경보), level_name
     """
     df = df.sort_values(DATE_COL).reset_index(drop=True).copy()
-    df["climatology"] = climatology_lookup(df)
-    df["anomaly"] = df[TEMP_COL] - df["climatology"]
-    df["daily_jump"] = df[TEMP_COL].diff()
-
-    ge28 = df[TEMP_COL] >= TEMP_THRESHOLD
-    # 오늘 포함 최근 3일이 전부 28도 이상인가 (결측 있는 날은 지속 인정 안 함)
-    df["sustained_ge28"] = ge28.rolling(ALERT_SUSTAIN_DAYS, min_periods=ALERT_SUSTAIN_DAYS).apply(
-        lambda w: bool(np.all(w)), raw=True).fillna(0).astype(bool)
-
-    is_alert = (
-        df["sustained_ge28"]
-        | (df["daily_jump"] >= ALERT_JUMP)
-        | (df["anomaly"] >= ALERT_ANOMALY)
-    )
-    is_warning = (
-        ge28
-        | (df["daily_jump"] >= WARNING_JUMP)
-        | (df["anomaly"] >= WARNING_ANOMALY)
-    )
-
-    df["level"] = 0
-    df.loc[is_warning, "level"] = 2
-    df.loc[is_alert, "level"] = 3
-    df["level_name"] = df["level"].map({0: "평시", 2: "주의보", 3: "경보"})
-    # 수온 자체가 결측인 날은 판정 불가로 표시
-    df.loc[df[TEMP_COL].isna(), ["level", "level_name"]] = [np.nan, "판정불가"]
-    return df
+    clim = climatology_lookup(df)
+    return classify_series(df[DATE_COL], df[TEMP_COL], clim)
 
 
 def run() -> pd.DataFrame:
