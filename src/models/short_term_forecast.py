@@ -5,8 +5,16 @@
 보류(docs/기상데이터_점검.md 참고)하고, 우선 기온·풍속·풍향만 사용한다.
 
 문제 정의: 어제(t-1)까지의 정보(수온·기온·풍속)로 오늘(t)의 수온을 예측.
-같은 날 기온을 입력으로 쓰지 않는다 (실제 운영 시점엔 오늘 기온도 아직
-다 관측되지 않았을 수 있어 보수적으로 lag1만 사용 - 데이터 누수 방지).
+
+2026-09-16 추가 검증: lag1만 쓰는 모델은 그날 새로 시작되는 급격한 수온 상승을
+체계적으로 과소예측함(상승일 잔차와 실제 변화량의 상관계수 0.74~0.97, 선형회귀·
+XGBoost 공통 현상 - 모델 종류가 아니라 "어제까지 정보만 쓴다"는 정보 구조의 한계).
+그래서 "당일 새벽(06시 이전) 기온·풍속"을 추가 - 그 시각에 경보를 낸다고 가정하면
+실제로 쓸 수 있는 정보라 데이터 누수가 아니며, 여기에 해양학 벌크 열플럭스 공식
+구조(Q=ρ*cp*C_H*U*(T_air-T_sea), 풍속×기온-수온차)를 차용한 상호작용항까지 더해
+4개 지역 전부 RMSE 개선(완도·여수 약 10%, 통영·남해군 2~4%) 확인 후 정식 채택.
+일부 달(남해군 2~3월, 통영 12월)은 소폭 저하 - 그 시기엔 이 변수의 설명력 자체가
+약해 노이즈가 낀 것으로 보임(부호 반전은 아님, 상세 검증은 문서 참고).
 
 검증: 2021~2023년 학습, **2024~2025년 2년을 검증용으로 남겨둠**
 (2024년 9월 이상값 사례가 검증 기간에 포함되어, 환경변수 추가가 실제로
@@ -23,16 +31,22 @@ from sklearn.ensemble import RandomForestRegressor
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from config import ROOT_DIR, REGIONS, DATE_COL, REGION_COL, TEMP_COL  # noqa: E402
 from data.load_data import load_raw_temperature  # noqa: E402
-from data.load_weather import load_daily_weather  # noqa: E402
+from data.load_weather import load_daily_weather, load_morning_weather  # noqa: E402
 from models.forecast import evaluate  # noqa: E402
 
 TRAIN_RANGE = ("2021-01-01", "2023-12-31")
 TEST_RANGE = ("2024-01-01", "2025-12-31")
 
+MORNING_CUTOFF_HOUR = 6  # "당일 새벽" 정보 컷오프 - 이 시각 이전 관측치만 리크 없이 사용 가능
+
 FEATURE_COLS = [
     "sea_temp_lag1", "sea_temp_lag2", "sea_temp_lag3",
     "air_temp_mean_lag1", "air_temp_min_lag1", "air_temp_max_lag1",
     "wind_speed_mean_lag1", "rain_sum_lag1", "doy_sin", "doy_cos",
+    # 2026-09-16 추가: 당일 새벽(06시 이전) 기온·풍속 + 벌크 열플럭스 공식
+    # (풍속×(기온-수온), Q=ρ*cp*C_H*U*(T_air-T_sea) 구조 차용) - 급등일 과소예측
+    # 편향을 줄이고 4개 지역 전부 RMSE 개선 확인(docs/단기예측_환경변수_검증.md 참고)
+    "air_temp_morning_mean", "wind_speed_morning_mean", "heatflux_proxy",
 ]
 
 
@@ -41,7 +55,10 @@ def build_region_dataset(region: str) -> pd.DataFrame:
     sea = load_raw_temperature(region)[[DATE_COL, TEMP_COL]].rename(columns={TEMP_COL: "sea_temp"})
     weather = load_daily_weather(region)[[DATE_COL, "air_temp_mean", "air_temp_min", "air_temp_max",
                                            "wind_speed_mean", "wind_dir_mean_deg", "rain_sum"]]
-    df = sea.merge(weather, on=DATE_COL, how="inner").sort_values(DATE_COL).reset_index(drop=True)
+    morning = load_morning_weather(region, cutoff_hour=MORNING_CUTOFF_HOUR)[
+        [DATE_COL, "air_temp_morning_mean", "wind_speed_morning_mean"]]
+    df = sea.merge(weather, on=DATE_COL, how="inner").merge(morning, on=DATE_COL, how="left")
+    df = df.sort_values(DATE_COL).reset_index(drop=True)
 
     df["sea_temp_lag1"] = df["sea_temp"].shift(1)
     df["sea_temp_lag2"] = df["sea_temp"].shift(2)
@@ -51,6 +68,9 @@ def build_region_dataset(region: str) -> pd.DataFrame:
     df["air_temp_max_lag1"] = df["air_temp_max"].shift(1)
     df["wind_speed_mean_lag1"] = df["wind_speed_mean"].shift(1)
     df["rain_sum_lag1"] = df["rain_sum"].shift(1)
+    # 벌크 열플럭스 공식 구조(풍속×기온-수온차) 차용 - 당일 새벽 관측치 x 어제 수온(lag1)
+    # 이라 리크 없음. 물리적 근거·검증 결과는 docs/단기예측_환경변수_검증.md 참고
+    df["heatflux_proxy"] = df["wind_speed_morning_mean"] * (df["air_temp_morning_mean"] - df["sea_temp_lag1"])
 
     doy = df[DATE_COL].dt.dayofyear
     df["doy_sin"] = np.sin(2 * np.pi * doy / 365.25)

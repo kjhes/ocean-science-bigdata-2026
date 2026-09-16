@@ -129,6 +129,30 @@ def load_daily_weather(region: str, weather_dir: Optional[Path] = None,
     return daily
 
 
+def load_morning_weather(region: str, cutoff_hour: int = 6, weather_dir: Optional[Path] = None) -> pd.DataFrame:
+    """당일 0시~cutoff_hour시 관측치만으로 집계한 "당일 새벽" 기온·풍속.
+
+    2026-09-16 검증: 전날까지 정보만 쓰는 lag1 모델은 그날 처음 발생하는 급격한
+    수온 상승을 체계적으로 과소예측함(상승일 잔차 상관계수 0.74~0.97, 선형회귀·
+    XGBoost 공통). 반면 "당일 새벽에 이미 관측된" 기온·풍속은 그날 오전에 경보를
+    낸다고 가정해도 실제로 쓸 수 있는 정보라 데이터 누수가 아니며, 실제로 RMSE를
+    유의미하게 낮춤(완도·여수 약 9%, 통영·남해군 약 2%). 전체 하루 평균/최고를
+    쓰면 리크가 섞여 수치가 부풀려지므로 반드시 cutoff_hour 이전 관측치만 사용.
+
+    반환 컬럼: date, region, air_temp_morning_mean, wind_speed_morning_mean
+    """
+    raw = load_raw_weather(region, weather_dir)
+    raw["date"] = raw["datetime"].dt.floor("D")
+    morning = raw[raw["datetime"].dt.hour < cutoff_hour]
+    daily = morning.groupby("date").agg(
+        air_temp_morning_mean=(RAW_TEMP_COL, "mean"),
+        wind_speed_morning_mean=(RAW_WIND_SPEED_COL, "mean"),
+    )
+    daily = daily.reset_index().rename(columns={"date": DATE_COL})
+    daily[REGION_COL] = region
+    return daily
+
+
 def load_all_daily_weather(weather_dir: Optional[Path] = None, include_solar: bool = False) -> pd.DataFrame:
     """REGIONS 전체의 일별 기상자료를 합친다."""
     frames = []
