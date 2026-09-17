@@ -5,6 +5,8 @@
 pandas>=2.0
 numpy>=1.24
 openpyxl>=3.1        # 엑셀(.xlsx) 원자료 로딩용
+requests>=2.31        # 외부 API 호출 (ROMS, 기상청 API허브 등)
+python-dotenv>=1.0    # .env에서 API 인증키 로딩
 
 # 시계열 예측
 scikit-learn>=1.3

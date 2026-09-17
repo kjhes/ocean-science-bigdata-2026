@@ -1,0 +1,746 @@
+### BluePulse AI - ROMS API 데이터 수집 코드 정리
+
+**1. 만든 프로그램**
+
+파일명:
+
+```text
+roms_download.py
+```
+
+목적은 국립해양조사원의 **ROMS 수치예측모델 API**에서 연구지역 주변의 단기 해양 예측자료를 자동으로 받아오는 것이다.
+
+현재 가져오는 데이터는 다음과 같다.
+
+```text
+예측일시
+위도
+경도
+예측 수온
+유향
+유속
+```
+
+연구지역은
+
+```text
+완도
+여수
+통영
+남해
+```
+
+4곳으로 설정했다.
+
+---
+
+**2. API를 받은 곳**
+
+공공데이터포털에서
+
+```text
+해양수산부 국립해양조사원_ROMS 수치예측모델 조회
+```
+
+API 활용신청을 했다.
+
+공공데이터포털:
+
+[공공데이터포털](https://www.data.go.kr/?utm_source=chatgpt.com)
+
+API 주소는
+
+```text
+https://apis.data.go.kr/1192136/roms/GetRomsApiService
+```
+
+이다.
+
+공식 활용가이드상 REST 방식으로 JSON/XML을 지원하는 서비스다. 
+
+---
+
+**3. 인증키**
+
+공공데이터포털에서 활용신청이 승인된 뒤 나오는 **일반 인증키**를 사용했다.
+
+중요:
+
+```python
+SERVICE_KEY = "실제_인증키"
+```
+
+처럼 실제 키를 코드에 작성해서 **GitHub에 올리면 안 됨.**
+
+GitHub에 올릴 버전은 반드시
+
+```python
+SERVICE_KEY = "YOUR_SERVICE_KEY"
+```
+
+또는 환경변수 방식으로 바꿔야 한다.
+
+내 인증키는 GitHub에 공유하지 않기.
+
+---
+
+**4. 사용한 API 요청값**
+
+API에 이런 값을 전달한다.
+
+```python
+params = {
+    "type": "json",
+    "ymin": ...,
+    "ymax": ...,
+    "xmin": ...,
+    "xmax": ...,
+    "pageNo": 1,
+    "numOfRows": 300
+}
+```
+
+즉 특정 지점을 딱 하나 요청하는 게 아니라 **연구지역 주변 위·경도 범위를 지정해서 ROMS 자료를 요청**하는 방식이다.
+
+공식 활용가이드에도 `serviceKey`, `type`, `ymin`, `ymax`, `xmin`, `xmax`, `pageNo`, `numOfRows` 등이 요청변수로 정의되어 있다. 
+
+---
+
+**5. API에서 받아오는 값**
+
+코드에서 사용하는 주요 반환값은
+
+```python
+predcDt  # 예측 일시
+lat      # ROMS 격자 위도
+lot      # ROMS 격자 경도
+wtem     # 예측 수온
+crdir    # 유향
+crsp     # 유속
+```
+
+이다.
+
+특히 API에서 경도 변수 이름이 `lon`이 아니라 **`lot`**이라 코드에서도 `row["lot"]`을 사용했다. 이 필드들은 공식 활용가이드에 명시돼 있다. 
+
+---
+
+**6. 코드가 하는 일**
+
+흐름은 이렇게 보면 된다.
+
+```text
+연구지역 기준 좌표
+        ↓
+주변 ±0.1° 범위 설정
+        ↓
+국립해양조사원 ROMS API 요청
+        ↓
+JSON 데이터 수신
+        ↓
+주변 ROMS 격자 검색
+        ↓
+기준점과 각 격자의 거리 계산
+        ↓
+가장 가까운 ROMS 격자 선택
+        ↓
+그 격자의 시간별 예측자료 추출
+        ↓
+CSV 저장
+```
+
+거리 계산에는 위도·경도로 실제 지표면 거리를 계산하는 **Haversine 공식**을 사용했다.
+
+---
+
+**7. 현재 실행 결과**
+
+현재 API 호출 성공:
+
+```text
+여수  → 성공
+통영  → 성공
+남해  → 성공
+완도  → INVALID_REQUEST_PARAMETER_ERROR
+```
+
+성공한 세 지역에서는 각각 **122개의 시간별 예측자료**를 얻었다.
+
+이번 실행 기준:
+
+```text
+첫 예측
+2026-09-17 00:00:00
+
+마지막 예측
+2026-09-22 01:00:00
+```
+
+CSV도 자동 생성됨.
+
+```text
+data/
+├─ yeosu_roms_20260917.csv
+├─ tongyeong_roms_20260917.csv
+└─ namhae_roms_20260917.csv
+```
+
+현재 완도는 API 요청범위를 수정해야 한다.
+
+또 현재 코드는 `numOfRows=300`으로 **첫 페이지 300개만 가져오는 상태**라서, 최종본에서는 pagination을 추가해서 전체 결과를 받은 뒤 가장 가까운 ROMS 격자를 다시 선택할 예정이다.
+
+---
+
+### 친구한테 같이 보내야 하는 현재 코드
+
+**주의: 아래 코드의 `SERVICE_KEY`에는 실제 키를 넣지 않은 상태로 GitHub에 올려야 함.**
+
+```python id="hh9aq5"
+import requests
+import csv
+import os
+import math
+from datetime import datetime
+
+
+# ==========================================
+# API 설정
+# ==========================================
+
+# 실제 인증키는 GitHub에 올리지 말 것
+SERVICE_KEY = "YOUR_SERVICE_KEY"
+
+BASE_URL = "https://apis.data.go.kr/1192136/roms/GetRomsApiService"
+
+OUTPUT_DIR = "data"
+
+
+# ==========================================
+# 연구지역
+# ==========================================
+
+REGIONS = {
+    "wando": {
+        "name": "완도",
+        "lat": 34.315556,
+        "lon": 126.759722
+    },
+    "yeosu": {
+        "name": "여수",
+        "lat": 34.74,
+        "lon": 127.73
+    },
+    "tongyeong": {
+        "name": "통영",
+        "lat": 34.83,
+        "lon": 128.43
+    },
+    "namhae": {
+        "name": "남해",
+        "lat": 34.71,
+        "lon": 128.05
+    }
+}
+
+
+# ==========================================
+# 두 좌표 사이 거리 계산
+# ==========================================
+
+def haversine(lat1, lon1, lat2, lon2):
+
+    R = 6371.0
+
+    lat1 = math.radians(lat1)
+    lon1 = math.radians(lon1)
+    lat2 = math.radians(lat2)
+    lon2 = math.radians(lon2)
+
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1)
+        * math.cos(lat2)
+        * math.sin(dlon / 2) ** 2
+    )
+
+    c = 2 * math.atan2(
+        math.sqrt(a),
+        math.sqrt(1 - a)
+    )
+
+    return R * c
+
+
+# ==========================================
+# API 응답에서 데이터 찾기
+# ==========================================
+
+def find_items(data):
+
+    if isinstance(data, dict):
+
+        if "items" in data:
+
+            items = data["items"]
+
+            if isinstance(items, list):
+                return items
+
+            if isinstance(items, dict):
+
+                if "item" in items:
+
+                    item = items["item"]
+
+                    if isinstance(item, list):
+                        return item
+
+                    if isinstance(item, dict):
+                        return [item]
+
+        for value in data.values():
+
+            result = find_items(value)
+
+            if result:
+                return result
+
+
+    elif isinstance(data, list):
+
+        if data:
+
+            first = data[0]
+
+            if isinstance(first, dict):
+
+                if (
+                    "predcDt" in first
+                    or "wtem" in first
+                    or "lat" in first
+                ):
+                    return data
+
+        for value in data:
+
+            result = find_items(value)
+
+            if result:
+                return result
+
+    return []
+
+
+# ==========================================
+# ROMS API 요청
+# ==========================================
+
+def request_roms(lat, lon):
+
+    delta = 0.1
+
+    url = f"{BASE_URL}?serviceKey={SERVICE_KEY}"
+
+    params = {
+        "type": "json",
+
+        "ymin": round(lat - delta, 6),
+        "ymax": round(lat + delta, 6),
+
+        "xmin": round(lon - delta, 6),
+        "xmax": round(lon + delta, 6),
+
+        "pageNo": 1,
+        "numOfRows": 300
+    }
+
+    try:
+
+        response = requests.get(
+            url,
+            params=params,
+            timeout=30
+        )
+
+        print(
+            "HTTP 상태코드:",
+            response.status_code
+        )
+
+        if response.status_code != 200:
+
+            print("API 요청 실패")
+            print(response.text[:1000])
+
+            return []
+
+        data = response.json()
+
+        # API 오류 확인
+        if isinstance(data, dict):
+
+            header = data.get("header")
+
+            if isinstance(header, dict):
+
+                result_code = header.get(
+                    "resultCode"
+                )
+
+                if (
+                    result_code is not None
+                    and str(result_code) != "00"
+                ):
+
+                    print(
+                        "API 오류:",
+                        result_code,
+                        header.get("resultMsg")
+                    )
+
+                    return []
+
+        rows = find_items(data)
+
+        if not rows:
+
+            print(
+                "ROMS 자료를 찾지 못했습니다."
+            )
+
+            print(
+                str(data)[:1500]
+            )
+
+            return []
+
+        print(
+            f"API 데이터 {len(rows)}개 수신"
+        )
+
+        return rows
+
+    except Exception as e:
+
+        print(
+            "API 처리 오류:",
+            e
+        )
+
+        return []
+
+
+# ==========================================
+# 가장 가까운 ROMS 격자 검색
+# ==========================================
+
+def find_nearest_grid(
+    rows,
+    target_lat,
+    target_lon
+):
+
+    grids = {}
+
+    for row in rows:
+
+        try:
+
+            lat = float(row["lat"])
+            lon = float(row["lot"])
+
+        except (
+            KeyError,
+            TypeError,
+            ValueError
+        ):
+            continue
+
+        key = (lat, lon)
+
+        if key not in grids:
+
+            distance = haversine(
+                target_lat,
+                target_lon,
+                lat,
+                lon
+            )
+
+            grids[key] = distance
+
+    if not grids:
+        return None
+
+    nearest = min(
+        grids,
+        key=grids.get
+    )
+
+    return {
+        "lat": nearest[0],
+        "lon": nearest[1],
+        "distance": grids[nearest]
+    }
+
+
+# ==========================================
+# 선택된 격자 데이터 추출
+# ==========================================
+
+def select_grid_rows(rows, grid):
+
+    selected = []
+
+    for row in rows:
+
+        try:
+
+            lat = float(row["lat"])
+            lon = float(row["lot"])
+
+            if (
+                abs(lat - grid["lat"]) < 0.000001
+                and
+                abs(lon - grid["lon"]) < 0.000001
+            ):
+
+                selected.append(row)
+
+        except (
+            KeyError,
+            TypeError,
+            ValueError
+        ):
+            continue
+
+    selected.sort(
+        key=lambda x: x.get(
+            "predcDt",
+            ""
+        )
+    )
+
+    return selected
+
+
+# ==========================================
+# CSV 저장
+# ==========================================
+
+def save_csv(
+    region_code,
+    region_name,
+    target_lat,
+    target_lon,
+    grid,
+    rows
+):
+
+    os.makedirs(
+        OUTPUT_DIR,
+        exist_ok=True
+    )
+
+    today = datetime.now().strftime(
+        "%Y%m%d"
+    )
+
+    filename = os.path.join(
+        OUTPUT_DIR,
+        f"{region_code}_roms_{today}.csv"
+    )
+
+    with open(
+        filename,
+        "w",
+        newline="",
+        encoding="utf-8-sig"
+    ) as f:
+
+        writer = csv.writer(f)
+
+        writer.writerow([
+            "지역",
+            "기준위도",
+            "기준경도",
+            "ROMS위도",
+            "ROMS경도",
+            "거리_km",
+            "예측일시",
+            "예측수온_C",
+            "유향_deg",
+            "유속_m_s"
+        ])
+
+        for row in rows:
+
+            writer.writerow([
+                region_name,
+                target_lat,
+                target_lon,
+                grid["lat"],
+                grid["lon"],
+                round(
+                    grid["distance"],
+                    3
+                ),
+                row.get("predcDt"),
+                row.get("wtem"),
+                row.get("crdir"),
+                row.get("crsp")
+            ])
+
+    print(
+        "CSV 저장 완료:",
+        filename
+    )
+
+
+# ==========================================
+# 지역별 처리
+# ==========================================
+
+def process_region(
+    region_code,
+    info
+):
+
+    name = info["name"]
+    lat = info["lat"]
+    lon = info["lon"]
+
+    print()
+    print("=" * 50)
+    print(f"[{name}]")
+    print(
+        f"기준 좌표: {lat}, {lon}"
+    )
+    print("=" * 50)
+
+    print(
+        "ROMS 데이터 요청 중..."
+    )
+
+    rows = request_roms(
+        lat,
+        lon
+    )
+
+    if not rows:
+
+        print(
+            "ROMS 데이터를 가져오지 못했습니다."
+        )
+        return
+
+    grid = find_nearest_grid(
+        rows,
+        lat,
+        lon
+    )
+
+    if grid is None:
+
+        print(
+            "ROMS 격자를 찾지 못했습니다."
+        )
+        return
+
+    print()
+    print(
+        "가장 가까운 ROMS 격자"
+    )
+
+    print(
+        f"위도: {grid['lat']}"
+    )
+
+    print(
+        f"경도: {grid['lon']}"
+    )
+
+    print(
+        f"거리: {grid['distance']:.2f} km"
+    )
+
+    selected = select_grid_rows(
+        rows,
+        grid
+    )
+
+    print(
+        f"선택된 예측자료: {len(selected)}개"
+    )
+
+    if not selected:
+        return
+
+    print(
+        f"첫 예측: "
+        f"{selected[0].get('predcDt')}"
+    )
+
+    print(
+        f"마지막 예측: "
+        f"{selected[-1].get('predcDt')}"
+    )
+
+    save_csv(
+        region_code,
+        name,
+        lat,
+        lon,
+        grid,
+        selected
+    )
+
+
+# ==========================================
+# 실행
+# ==========================================
+
+def main():
+
+    print(
+        "=" * 60
+    )
+
+    print(
+        "BluePulse AI - ROMS 단기예측 자동 수집"
+    )
+
+    print(
+        "=" * 60
+    )
+
+    for (
+        region_code,
+        info
+    ) in REGIONS.items():
+
+        process_region(
+            region_code,
+            info
+        )
+
+    print()
+    print(
+        "=" * 60
+    )
+
+    print(
+        "모든 지역 처리 완료!"
+    )
+
+    print(
+        "=" * 60
+    )
+
+
+if __name__ == "__main__":
+    main()
+```
