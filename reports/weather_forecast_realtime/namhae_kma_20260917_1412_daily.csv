@@ -1,0 +1,6 @@
+﻿region_code,region,date,air_temp_forecast_mean,air_temp_forecast_min,air_temp_forecast_max,wind_speed_forecast_mean,rain_forecast_sum,n_tmp,n_wsd,n_pcp
+namhae,남해군,2026-09-17,24.416666666666668,22.0,26.0,6.658333333333332,0.0,12,12,12
+namhae,남해군,2026-09-18,22.791666666666668,21.0,25.0,6.1375,7.0,24,24,18
+namhae,남해군,2026-09-19,23.458333333333332,21.0,27.0,4.983333333333333,0.0,24,24,24
+namhae,남해군,2026-09-20,23.0,20.0,27.0,1.9625,0.0,8,8,8
+namhae,남해군,2026-09-21,21.0,21.0,21.0,1.0,0.0,1,1,1
