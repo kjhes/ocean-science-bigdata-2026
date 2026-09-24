@@ -39,12 +39,22 @@
 │   │                              alert.py(경보 판정), forecast_alert.py(예측→경보 연결)
 │   ├── analysis/                 anomaly_2024.py(이상값 분해)
 │   └── visualization/            시각화 (plots.py)
+├── app/                         고수온 예보 앱 (index.html, data/forecast.js 자동 생성)
+├── src/app/                     final_model.py(최종 모델), build_forecast.py(앱 자료 생성)
 ├── notebooks/                   EDA용 주피터 노트북
 └── reports/                     forecast_2025/(baseline), short_term_forecast/, alert_reconstruction/,
                                   forecast_alert/, anomaly_2024/, weather_forecast_realtime/, figures/
 ```
 
+## 앱 (2026-09-24 1차 완성)
+
+`app/index.html`을 더블클릭하면 열린다. 지역·어종을 고르면 7일 예상 수온, 정상/주의/위험,
+위험 수온 도달 예상일, 지금 할 일을 보여준다. 매일 `app/update_forecast.bat`(또는
+`python src/app/build_forecast.py`)로 최신 예보를 만든다. 자세한 내용은 [`app/README.md`](app/README.md).
+
 ## 시작하기
+
+Python 3.11 이상 권장 (pandas 2 이상 필요).
 
 ```bash
 pip install -r requirements.txt
@@ -95,6 +105,17 @@ ROMS·기상청 단기예보 API를 쓰는 스크립트(`load_roms.py`, `load_we
   안 겹침)를 확인 후 보류.
 - 미착수: **어종별·양식방식별 경보 연결** — 원래 목적(지역·양식방식별 어종 추천)인데
   양식방식 위험도 자료(위 참고)가 막혀 있어 아직 못 붙였음.
+
+### 3단계 — 고수온 도달 예측 + 앱 (2026-09-24, 2차 멘토링 후속)
+
+- 여름(6~9월)만, +1~7일, 28℃·어종별 위험 수온 **도달 시점** 평가로 전환
+- 수과원 같은 관측소의 **2012~2025 과거 자료** 확보(학습 3년 → 최대 12년), 기상 2012~2026
+- 최종 모델: 기존 1일 모델 + 3·7·14일 기상 흐름, 하루씩 굴려 7일, 경보 여유폭 0.75℃
+- **2026년 여름(학습·모델 선택에 안 쓴 기간) 검증**: 오차 ±1℃ 이내 +1일 98% / +3일 82% /
+  +7일 65%, 28℃ 도달 71% 사전 포착(도달일 오차 평균 1.7일)
+- 한계 정량화: 여름 7일 수온 상승량은 과거 기상으로 약 15%, 미래 날씨·해양을 완벽히 알아도 약 30%만
+  설명됨 → 양식장 앞바다 급상승은 국지적 현상. 그래서 앱은 "가까운 날은 수온, 먼 날은 위험 단계" 위주
+- 전체 경과: [`PROGRESS.md`](PROGRESS.md) 2026-09-24
 
 상세 실험 로그: [`docs/단기예측_환경변수_검증.md`](docs/단기예측_환경변수_검증.md), 압축 요약:
 [`docs/현재_상태_요약.md`](docs/현재_상태_요약.md), 경보 기준·대응요령: [`docs/고수온_경보_및_대응요령.md`](docs/고수온_경보_및_대응요령.md),

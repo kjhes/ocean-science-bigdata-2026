@@ -1,0 +1,288 @@
+/* 남해안 고수온 예보 - 화면 규칙
+   대상: 양식업 종사자(중장년). 근거: NN/g 고령층 사용성, 행정안전부 KRDS, 고령층 친화 디지털 접근성 지침
+   - 본문 18px 이상, 글자 대비 4.5:1 이상, 누르는 곳 높이 56px
+   - 상태는 색만으로 구분하지 않고 항상 글자(정상/주의/위험)와 함께
+   - 모서리는 각지게, 그림자·그라데이션 없음. 선과 여백으로 구분 */
+
+:root {
+  --ink: #16202b;
+  --ink-2: #3a4754;
+  --muted: #56636f;
+  --rule: #c9d1d9;
+  --rule-strong: #8a96a3;
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --navy: #12324f;
+  --navy-dark: #0a2036;
+  --series: #1f5fa8;        /* 수온 선 */
+  --series-band: rgba(31, 95, 168, 0.14);
+  --actual: #3a4754;        /* 지난 예보 확인 때 실제 수온 */
+  --good: #0ca30c;
+  --warn: #fab219;
+  --crit: #d03b3b;
+  --good-tint: #e9f5e9;
+  --warn-tint: #fff4d9;
+  --crit-tint: #fbe9e9;
+  --focus: #ffbf00;
+  font-size: 18px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Malgun Gothic", "Apple SD Gothic Neo", "Noto Sans KR", "Nanum Gothic", sans-serif;
+  line-height: 1.55;
+  word-break: keep-all;
+  -webkit-text-size-adjust: 100%;
+}
+
+.wrap { max-width: 760px; margin: 0 auto; padding-inline: 16px; }
+
+h1, h2 { margin: 0; line-height: 1.3; }
+
+.topbar {
+  background: var(--navy);
+  color: #fff;
+  padding-block: 18px 16px;
+  padding-top: calc(18px + env(safe-area-inset-top, 0px));
+  border-bottom: 4px solid var(--navy-dark);
+}
+.topbar h1 { font-size: 1.45rem; letter-spacing: -0.01em; }
+.topbar-sub { margin: 4px 0 0; font-size: 0.95rem; color: #d6e0ea; }
+
+main.wrap { padding-block: 20px 32px; }
+
+/* ---------- 조회 조건 ---------- */
+.controls {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+/* minmax(0,1fr): 드롭다운이 가장 긴 선택지 글자 폭만큼 늘어나 휴대폰 화면 밖으로 밀리던 문제 방지 */
+.field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; min-width: 0; }
+.field-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; }
+.field-label { font-weight: 700; font-size: 0.95rem; color: var(--ink-2); }
+
+.segmented {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border: 1px solid var(--rule-strong);
+}
+.segmented button {
+  min-height: 56px;
+  font: inherit;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: var(--surface);
+  border: 0;
+  border-left: 1px solid var(--rule-strong);
+  cursor: pointer;
+}
+.segmented button:first-child { border-left: 0; }
+.segmented.five { grid-template-columns: repeat(5, 1fr); }
+.segmented button.gps { font-size: 0.95rem; }
+.segmented button[aria-pressed="true"] {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: inset 0 -4px 0 var(--focus);
+}
+.place-now { margin: 4px 0 0; font-size: 1rem; }
+.place-now strong { font-size: 1.05rem; }
+
+/* 지도 */
+.map-wrap { display: grid; gap: 6px; }
+.map { height: 320px; border: 1px solid var(--rule-strong); background: #dde5ec; }
+.map-hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
+.leaflet-container { font-family: inherit; font-size: 0.9rem; }
+.leaflet-tooltip { border-radius: 0; box-shadow: none; border: 1px solid var(--ink); }
+.leaflet-bar a, .leaflet-bar { border-radius: 0 !important; }
+
+.status-warn { margin: -4px 0 12px; padding: 8px 10px; background: #fff; border: 1px solid var(--rule-strong); font-size: 0.95rem; }
+.status.none { border-left-color: var(--rule-strong); }
+
+/* 예보에 쓴 관측소 */
+.nb th { text-align: left; font-size: 0.85rem; color: var(--muted); font-weight: 700; padding: 10px 8px; border-bottom: 1px solid var(--rule-strong); }
+.nb td { padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+.nb .num { text-align: right; font-variant-numeric: tabular-nums; }
+.nb .bar { display: inline-block; height: 8px; background: var(--series); vertical-align: middle; margin-right: 6px; }
+.segmented button[aria-checked="true"] {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: inset 0 -4px 0 var(--focus);
+}
+.segmented button:hover:not([aria-checked="true"]) { background: #e4eaf0; }
+
+.select {
+  width: 100%;
+  min-height: 56px;
+  font: inherit;
+  font-size: 1.05rem;
+  color: var(--ink);
+  background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%2316202b' stroke-width='2'/%3E%3C/svg%3E") no-repeat right 14px center;
+  border: 1px solid var(--rule-strong);
+  border-radius: 0;
+  padding: 0 40px 0 12px;
+  min-width: 0;
+  text-overflow: ellipsis;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+button:focus-visible, .select:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* ---------- 상태 요약 ---------- */
+.status {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 12px solid var(--rule-strong);
+  padding: 18px 20px 16px;
+}
+.status.good { border-left-color: var(--good); background: var(--good-tint); }
+.status.warn { border-left-color: var(--warn); background: var(--warn-tint); }
+.status.crit { border-left-color: var(--crit); background: var(--crit-tint); }
+
+.status-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status-mark { width: 22px; height: 22px; flex: none; background: var(--rule-strong); }
+.status.good .status-mark { background: var(--good); }
+.status.warn .status-mark { background: var(--warn); outline: 1px solid #b07a00; outline-offset: -1px; }
+.status.crit .status-mark { background: var(--crit); }
+.status-word { font-size: 2rem; line-height: 1.1; }
+.status-scope { font-size: 1rem; color: var(--ink-2); }
+.status-msg { margin: 10px 0 14px; font-size: 1.15rem; font-weight: 700; }
+
+.facts {
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1px solid var(--rule);
+}
+.facts > div { padding: 10px 12px 0 0; }
+.facts > div + div { padding-left: 12px; border-left: 1px solid var(--rule); }
+.facts dt { font-size: 0.85rem; color: var(--muted); }
+.facts dd { margin: 2px 0 0; font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.facts dd small { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+
+/* ---------- 공통 블록 ---------- */
+.block {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 18px 20px;
+}
+.block-head {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+}
+.block-head h2 { font-size: 1.2rem; }
+.block-note { font-size: 0.9rem; color: var(--muted); }
+.hint { margin: 12px 0 0; font-size: 0.92rem; color: var(--muted); }
+
+/* ---------- 7일 표 ---------- */
+table { border-collapse: collapse; width: 100%; }
+.days th {
+  text-align: left; font-size: 0.85rem; color: var(--muted); font-weight: 700;
+  padding: 10px 8px; border-bottom: 1px solid var(--rule-strong);
+}
+.days td { padding: 12px 8px; border-bottom: 1px solid var(--rule); vertical-align: middle; }
+.days .num { text-align: right; font-variant-numeric: tabular-nums; }
+.days td.num strong { font-size: 1.3rem; }
+.days td.num small { display: block; font-size: 0.8rem; color: var(--muted); }
+.days .date strong { font-size: 1.05rem; white-space: nowrap; }
+.days .date small { display: block; font-size: 0.8rem; color: var(--muted); }
+.days tr.far td { color: var(--ink-2); }
+.days tr.far .date small::after { content: " · 참고용"; }
+.actual-col { display: none; }
+.showing-past .actual-col { display: table-cell; }
+
+.tag { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; white-space: nowrap; }
+.tag::before { content: ""; width: 16px; height: 16px; flex: none; background: var(--rule-strong); }
+.tag.good::before { background: var(--good); }
+.tag.warn::before { background: var(--warn); outline: 1px solid #b07a00; outline-offset: -1px; }
+.tag.crit::before { background: var(--crit); }
+.tag.first-danger::after { content: "도달 예상"; font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--crit); padding: 1px 6px; }
+
+/* ---------- 차트 ---------- */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 10px 0 4px; font-size: 0.88rem; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { display: inline-block; width: 22px; height: 0; border-top: 2px solid var(--series); }
+.legend i.dash { border-top-style: dashed; }
+.legend i.band { height: 10px; border: 0; background: var(--series-band); }
+.legend i.crit { border-top: 2px dashed var(--crit); }
+.legend i.warn { border-top: 2px dashed #b07a00; }
+.legend i.actual { border-top: 2px solid var(--actual); }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+/* 그래프는 화면 폭에 맞춰 픽셀 단위로 다시 그리므로(app.js) 글자 크기가 실제 크기 그대로 보인다 */
+.chart .axis text { font-size: 14px; fill: var(--muted); font-family: inherit; }
+.chart .grid line { stroke: #e3e8ec; stroke-width: 1; }
+.chart .today-rule { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 2 3; }
+.chart .today-label { font-size: 14px; fill: var(--ink); font-weight: 700; }
+.chart .th-label { font-size: 14px; font-weight: 700; }
+.tooltip {
+  position: absolute; pointer-events: none; background: var(--ink); color: #fff;
+  font-size: 0.85rem; padding: 6px 10px; white-space: nowrap; transform: translate(-50%, -100%);
+  margin-top: -10px;
+}
+.tooltip[hidden] { display: none; }
+
+/* ---------- 할 일 ---------- */
+.actions { margin: 12px 0 0; padding-left: 1.4em; }
+.actions li { margin: 0 0 10px; padding-left: 4px; }
+.actions li::marker { font-weight: 700; }
+.actions .sp { font-weight: 700; }
+
+/* ---------- 정확도 ---------- */
+.acc th, .acc td { padding: 10px 8px; border-bottom: 1px solid var(--rule); text-align: left; }
+.acc th { font-weight: 400; color: var(--ink-2); width: 45%; }
+.acc td { font-weight: 700; font-variant-numeric: tabular-nums; }
+.acc td small { font-weight: 400; color: var(--muted); }
+
+.footer {
+  border-top: 1px solid var(--rule);
+  background: var(--surface);
+  padding-block: 18px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.footer p { margin: 0 0 6px; }
+
+.notice {
+  margin-top: 12px; padding: 10px 12px; border: 1px solid var(--rule-strong); background: #fffbe6; font-size: 0.92rem;
+}
+
+@media (max-width: 560px) {
+  :root { font-size: 17px; }
+  .field-row { grid-template-columns: minmax(0, 1fr); }
+  .segmented button { font-size: 1rem; }
+  .segmented.five { grid-template-columns: repeat(3, 1fr); }
+  .segmented.five button { border-top: 1px solid var(--rule-strong); }
+  .segmented.five button:nth-child(-n+3) { border-top: 0; }
+  .segmented.five button:nth-child(3n+1) { border-left: 0; }
+  .map { height: 260px; }
+  .status { padding: 16px 14px 14px; border-left-width: 10px; }
+  .block { padding: 16px 14px; }
+  .facts { grid-template-columns: 1fr 1fr; }
+  .facts > div:nth-child(3) { grid-column: 1 / -1; border-left: 0; padding-left: 0; border-top: 1px solid var(--rule); margin-top: 10px; }
+  .days th, .days td { padding-inline: 4px; }
+  .days td.num strong { font-size: 1.15rem; }
+  .showing-past .days td.num small { display: none; }  /* 지난 예보 비교 때는 칸이 좁아 범위 숫자 생략 */
+  .showing-past .tag { gap: 5px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .segmented button { transition: background-color 0.1s; }
+}
