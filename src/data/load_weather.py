@@ -172,3 +172,36 @@ if __name__ == "__main__":
     print(df.groupby("region")[["air_temp_mean", "wind_speed_mean"]].agg(["count", "mean"]))
     print("결측치:")
     print(df.groupby("region")[["air_temp_mean", "wind_speed_mean", "wind_dir_mean_deg"]].apply(lambda g: g.isna().sum()))
+
+
+# ---------------- 지점번호 기준 로딩 (양식장 위치별 예보용, 2026-09-25) ----------------
+# 기존 4개 지점은 지역 폴더, 나머지는 '기상 데이터/지점별/{지점번호}/'에 fetch_asos.fetch_station 으로 저장
+STATION_FOLDERS = {170: "완도", 168: "여수", 162: "통영", 295: "남해"}
+
+
+def station_dir(stn: int) -> Path:
+    return WEATHER_DIR / STATION_FOLDERS[stn] if stn in STATION_FOLDERS else WEATHER_DIR / "지점별" / str(stn)
+
+
+def load_raw_weather_stn(stn: int) -> pd.DataFrame:
+    files = sorted(station_dir(stn).glob("*.csv"))
+    if not files:
+        raise FileNotFoundError(f"ASOS {stn} 시간자료가 없습니다: {station_dir(stn)}")
+    raw = pd.concat([pd.read_csv(f, encoding="cp949") for f in files], ignore_index=True)
+    raw[RAW_TIME_COL] = pd.to_datetime(raw[RAW_TIME_COL])
+    raw = raw.rename(columns={RAW_TIME_COL: "datetime"})
+    return raw.sort_values("datetime").drop_duplicates(subset=["datetime"], keep="last").reset_index(drop=True)
+
+
+def load_station_weather(stn: int, cutoff_hour: int = 6) -> pd.DataFrame:
+    """지점번호의 일별 기상 + 새벽(cutoff_hour 이전) 기온·풍속. load_daily_weather/load_morning_weather와 같은 집계 규칙."""
+    raw = load_raw_weather_stn(stn)
+    raw["date"] = raw["datetime"].dt.floor("D")
+    if RAIN_NA_MEANS_ZERO:
+        raw[RAW_RAIN_COL] = raw[RAW_RAIN_COL].fillna(0.0)
+    daily = raw.groupby("date").agg(
+        air_temp_mean=(RAW_TEMP_COL, "mean"), air_temp_min=(RAW_TEMP_COL, "min"), air_temp_max=(RAW_TEMP_COL, "max"),
+        wind_speed_mean=(RAW_WIND_SPEED_COL, "mean"), rain_sum=(RAW_RAIN_COL, "sum"))
+    morning = raw[raw["datetime"].dt.hour < cutoff_hour].groupby("date").agg(
+        air_temp_morning_mean=(RAW_TEMP_COL, "mean"), wind_speed_morning_mean=(RAW_WIND_SPEED_COL, "mean"))
+    return daily.join(morning).reset_index().rename(columns={"date": DATE_COL})
