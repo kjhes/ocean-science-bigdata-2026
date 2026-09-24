@@ -19,3 +19,12 @@ Thumbs.db
 
 # 전달용 ZIP 패키지 (내용은 저장소에 병합됨)
 *.zip
+
+# 실험 중간 결과(예측값 원본) - 스크립트로 다시 만들 수 있고 용량이 커서 제외 (요약표는 포함)
+reports/buoy_validation/predictions.csv
+reports/long_history_experiment/predictions.csv
+reports/pooled_experiment/predictions.csv
+reports/recursive_experiment/predictions.csv
+reports/spatial_experiment/loso_predictions.csv
+reports/improve_experiment/errors.csv
+reports/improve_experiment/crossing.csv

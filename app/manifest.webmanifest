@@ -1,0 +1,13 @@
+{
+  "name": "남해안 고수온 예보",
+  "short_name": "고수온 예보",
+  "description": "완도·여수·통영·남해 양식장 수온 7일 예보와 어종별 고수온 위험 알림",
+  "lang": "ko",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eef1f4",
+  "theme_color": "#12324f",
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>남해안 고수온 예보</title>
+<meta name="description" content="남해안 양식장 위치별 수온 7일 예보와 어종별 고수온 위험 알림">
+<meta name="theme-color" content="#12324f">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="wrap">
+    <h1>남해안 고수온 예보</h1>
+    <p class="topbar-sub">양식장 위치별 수온 7일 예보 · 어종별 위험 알림</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="controls" aria-label="조회 조건">
+    <div class="field">
+      <span class="field-label" id="place-label">양식장 위치</span>
+      <div class="segmented five" role="group" aria-labelledby="place-label" id="preset-buttons"></div>
+      <p class="place-now" id="place-now" aria-live="polite"></p>
+    </div>
+    <div class="map-wrap" id="map-wrap">
+      <div class="map" id="map" role="application" aria-label="양식장 위치를 고르는 지도"></div>
+      <p class="map-hint">지도를 눌러 양식장 위치를 고르십시오. 파란 점은 수온 관측소입니다.</p>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label class="field-label" for="station-select">관측소 이름으로 고르기</label>
+        <select id="station-select" class="select"></select>
+      </div>
+      <div class="field">
+        <label class="field-label" for="species-select">기르는 어종</label>
+        <select id="species-select" class="select"></select>
+      </div>
+    </div>
+    <div class="field">
+      <label class="field-label" for="date-select">예보 기준일</label>
+      <select id="date-select" class="select"></select>
+    </div>
+  </section>
+
+  <div id="unavailable" class="status none" hidden>
+    <div class="status-head"><span class="status-mark" aria-hidden="true"></span><strong class="status-word">예보 없음</strong></div>
+    <p class="status-msg" id="unavailable-msg"></p>
+  </div>
+
+  <div id="result">
+  <section class="status" id="status" aria-live="polite">
+    <div class="status-head">
+      <span class="status-mark" id="status-mark" aria-hidden="true"></span>
+      <strong class="status-word" id="status-word"></strong>
+      <span class="status-scope" id="status-scope"></span>
+    </div>
+    <p class="status-msg" id="status-msg"></p>
+    <p class="status-warn" id="status-warn" hidden></p>
+    <dl class="facts">
+      <div><dt id="fact-now-label">현재 수온</dt><dd id="fact-now"></dd></div>
+      <div><dt>위험 수온</dt><dd id="fact-danger"></dd></div>
+      <div><dt>적정 수온</dt><dd id="fact-opt"></dd></div>
+    </dl>
+  </section>
+
+  <section class="block" aria-labelledby="table-title">
+    <div class="block-head">
+      <h2 id="table-title">7일 예상 수온</h2>
+      <span class="block-note" id="table-note"></span>
+    </div>
+    <table class="days" id="days">
+      <thead><tr><th scope="col">날짜</th><th scope="col" class="num">예상 수온</th><th scope="col" class="actual-col num">실제 수온</th><th scope="col">상태</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="hint">예상 수온 아래 작은 숫자는 실제 수온이 들어올 가능성이 높은 범위입니다. 4일 뒤부터는 오르내리는 흐름을 보는 참고용입니다.</p>
+  </section>
+
+  <section class="block" aria-labelledby="chart-title">
+    <div class="block-head">
+      <h2 id="chart-title">최근 2주와 앞으로 7일</h2>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="chart" id="chart"></div>
+  </section>
+
+  <section class="block" aria-labelledby="action-title">
+    <div class="block-head">
+      <h2 id="action-title">지금 할 일</h2>
+      <span class="block-note" id="action-note"></span>
+    </div>
+    <ol class="actions" id="actions"></ol>
+    <p class="hint">국립수산과학원 「자연재해 대비 양식장 관리요령」 고수온 편을 요약했습니다. 피해가 생기면 시·군청에 바로 신고하십시오.</p>
+  </section>
+
+  <section class="block" aria-labelledby="src-title">
+    <div class="block-head">
+      <h2 id="src-title">이 위치의 예보를 만든 관측소</h2>
+    </div>
+    <table class="nb" id="nb">
+      <thead><tr><th scope="col">관측소</th><th scope="col" class="num">거리</th><th scope="col" class="num">반영 비율</th><th scope="col" class="num">현재 수온</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <p class="hint" id="nb-note"></p>
+  </section>
+
+  <section class="block" aria-labelledby="acc-title">
+    <div class="block-head">
+      <h2 id="acc-title">이 예보는 얼마나 맞나요</h2>
+    </div>
+    <table class="acc" id="acc"></table>
+    <p class="hint" id="acc-note"></p>
+  </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <p>이 예보는 양식장 관리를 돕는 참고 자료입니다. 공식 고수온 특보는 국립수산과학원 발표를 따르십시오.</p>
+    <p>수온: 국립수산과학원 실시간 해양수산환경 관측시스템 · 기상: 기상청 종관기상관측(ASOS) · 어종 기준 수온: 국립수산과학원 자료 · 지도: © OpenStreetMap 기여자</p>
+    <p id="generated"></p>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data/forecast.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
