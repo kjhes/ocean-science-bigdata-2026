@@ -21,10 +21,47 @@
 
 <main class="wrap">
   <section class="controls" aria-label="조회 조건">
+    <div class="field" id="my-farms-field" hidden>
+      <div class="field-head">
+        <span class="field-label" id="my-label">내 양식장</span>
+        <button type="button" class="link-btn" id="manage-btn" aria-expanded="false">관리·옮기기</button>
+      </div>
+      <div class="my-farms" role="group" aria-labelledby="my-label" id="my-farms"></div>
+      <div class="manage" id="manage" hidden>
+        <ul class="manage-list" id="manage-list"></ul>
+        <div class="manage-move">
+          <p class="hint">다른 휴대폰으로 옮기려면 아래 코드를 복사해 새 휴대폰의 이 칸에 붙여 넣고 '가져오기'를 누르십시오.</p>
+          <textarea id="move-code" class="input code" rows="3" aria-label="내 양식장 옮기기 코드"></textarea>
+          <div class="btn-row">
+            <button type="button" class="btn" id="copy-code">코드 복사</button>
+            <button type="button" class="btn" id="import-code">가져오기</button>
+          </div>
+          <p class="hint" id="move-msg" aria-live="polite"></p>
+        </div>
+      </div>
+    </div>
+
     <div class="field">
-      <span class="field-label" id="place-label">양식장 위치</span>
+      <label class="field-label" for="farm-search">양식장 찾기 (주소·마을·면허번호)</label>
+      <input id="farm-search" class="input" type="search" autocomplete="off" placeholder="예: 군외 불목, 산양 풍화, 통영 제123호">
+      <ul class="results" id="farm-results" hidden></ul>
+      <p class="hint">국립해양조사원 어장정보에 등록된 남해안 양식장 8천여 곳에서 찾습니다.</p>
+    </div>
+
+    <div class="field">
+      <span class="field-label" id="place-label">지역으로 고르기</span>
       <div class="segmented five" role="group" aria-labelledby="place-label" id="preset-buttons"></div>
       <p class="place-now" id="place-now" aria-live="polite"></p>
+      <p class="farm-note" id="farm-note" hidden></p>
+    </div>
+
+    <div class="save-box" id="save-box" hidden>
+      <label class="field-label" for="save-name">이 위치를 내 양식장으로 저장</label>
+      <div class="save-row">
+        <input id="save-name" class="input" type="text" maxlength="30" placeholder="예: 우리 가두리 1호">
+        <button type="button" class="btn primary" id="save-btn">저장</button>
+      </div>
+      <p class="hint">이 휴대폰(브라우저) 안에만 저장되고 어디에도 보내지 않습니다.</p>
     </div>
     <div class="map-wrap" id="map-wrap">
       <div class="map" id="map" role="application" aria-label="양식장 위치를 고르는 지도"></div>
@@ -120,12 +157,14 @@
 <footer class="footer">
   <div class="wrap">
     <p>이 예보는 양식장 관리를 돕는 참고 자료입니다. 공식 고수온 특보는 국립수산과학원 발표를 따르십시오.</p>
-    <p>수온: 국립수산과학원 실시간 해양수산환경 관측시스템 · 기상: 기상청 종관기상관측(ASOS) · 어종 기준 수온: 국립수산과학원 자료 · 지도: © OpenStreetMap 기여자</p>
+    <p>수온: 국립수산과학원 실시간 해양수산환경 관측시스템 · 기상: 기상청 종관기상관측(ASOS) · 어종 기준 수온: 국립수산과학원 자료 · 양식장 목록: 해양수산부 국립해양조사원 어장정보(2025-08-13) · 지도: © OpenStreetMap 기여자, Natural Earth</p>
     <p id="generated"></p>
   </div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="data/coast.js"></script>
+<script src="data/farms.js"></script>
 <script src="data/forecast.js"></script>
 <script src="app.js"></script>
 </body>

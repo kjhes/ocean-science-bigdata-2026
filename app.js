@@ -18,6 +18,8 @@
     return;
   }
 
+  // 한 페이지로 묶어 게시할 때(src/app/bundle_single.py): 위치 권한·외부 지도 타일을 쓸 수 없음
+  var OPTIONS = window.APP_OPTIONS || {};
   var K = F.kriging;
   var LABEL = { good: "정상", warn: "주의", crit: "위험" };
   var RANK = { good: 0, warn: 1, crit: 2 };
@@ -208,6 +210,193 @@
     render();
   }
 
+  // ---------- 내 양식장 (이 기기 브라우저에만 저장) ----------
+  function loadMy() {
+    try {
+      var a = JSON.parse(load("myfarms", "[]"));
+      return Array.isArray(a) ? a.filter(function (f) { return f && f.name && isFinite(f.lat) && isFinite(f.lon); }) : [];
+    } catch (e) { return []; }
+  }
+  var myFarms = loadMy();
+  function saveMy() { save("myfarms", JSON.stringify(myFarms)); }
+  function samePlace(a, b) { return a && b && Math.abs(a.lat - b.lat) < 1e-5 && Math.abs(a.lon - b.lon) < 1e-5; }
+  function speciesIndexByName(name) {
+    for (var i = 0; i < F.species.length; i++) if (F.species[i].name === name) return i;
+    return -1;
+  }
+  function setSpecies(i) {
+    if (i < 0) return;
+    state.species = i;
+    save("species", String(i));
+    document.getElementById("species-select").value = i;
+  }
+  // 옮기기 코드: 목록(JSON)을 글자 코드로 바꿔 다른 기기에 붙여 넣게 함
+  function encodeMy(list) {
+    try { return "HSW1:" + btoa(unescape(encodeURIComponent(JSON.stringify(list)))); } catch (e) { return ""; }
+  }
+  function decodeMy(code) {
+    var c = String(code || "").trim();
+    if (c.indexOf("HSW1:") !== 0) return null;
+    try {
+      var a = JSON.parse(decodeURIComponent(escape(atob(c.slice(5)))));
+      return Array.isArray(a) ? a.filter(function (f) { return f && f.name && isFinite(f.lat) && isFinite(f.lon); }) : null;
+    } catch (e) { return null; }
+  }
+
+  // ---------- 양식장 찾기 (국립해양조사원 어장정보) ----------
+  var FR = (window.FARMS && window.FARMS.rows) || [];
+  function norm(s) { return String(s || "").replace(/\s+/g, "").toLowerCase(); }
+  var FR_IDX = FR.map(function (r) { return norm(r[0] + r[1] + r[2] + r[3] + r[4] + r[5]); });
+  var SPECIES_KEYS = [["넙치", "넙치"], ["광어", "넙치"], ["우럭", "조피볼락"], ["조피볼락", "조피볼락"], ["참돔", "참돔"],
+                      ["감성돔", "감성돔"], ["숭어", "숭어"], ["농어", "농어"], ["돌돔", "돌돔"], ["방어", "방어"]];
+  function speciesFromKind(text) {
+    for (var k = 0; k < SPECIES_KEYS.length; k++) {
+      if (String(text || "").indexOf(SPECIES_KEYS[k][0]) >= 0) {
+        for (var i = 0; i < F.species.length; i++) if (F.species[i].name.indexOf(SPECIES_KEYS[k][1]) === 0) return i;
+      }
+    }
+    return -1;
+  }
+  function searchFarms(q) {
+    var tokens = String(q || "").trim().split(/\s+/).map(norm).filter(Boolean);
+    if (!tokens.length) return [];
+    var out = [];
+    for (var i = 0; i < FR.length && out.length < 30; i++) {
+      var ok = true;
+      for (var t = 0; t < tokens.length; t++) if (FR_IDX[i].indexOf(tokens[t]) < 0) { ok = false; break; }
+      if (ok) out.push(i);
+    }
+    return out;
+  }
+  function nearestKm(p) {
+    var best = Infinity;
+    ST.forEach(function (s) { if (s.issue === LATEST) best = Math.min(best, km(p, s)); });
+    return best;
+  }
+  function chooseFarmRow(i) {
+    var r = FR[i];
+    state.gps = false;
+    var sp = speciesFromKind(r[5] + " " + r[3]);
+    if (sp >= 0) setSpecies(sp);
+    document.getElementById("farm-search").value = "";
+    document.getElementById("farm-results").hidden = true;
+    setFarm({ lat: r[6], lon: r[7], label: r[0] + " " + r[1],
+              farm: { lcns: r[2], knd: r[3], mthd: r[4], kind: r[5] } });
+  }
+  function renderResults() {
+    var input = document.getElementById("farm-search"), ul = document.getElementById("farm-results");
+    var hits = searchFarms(input.value);
+    ul.innerHTML = "";
+    if (!input.value.trim()) { ul.hidden = true; return; }
+    ul.hidden = false;
+    if (!hits.length) {
+      ul.innerHTML = '<li class="empty">찾는 양식장이 없습니다. 마을 이름만 넣어 보거나(예: 불목), 지도에서 직접 누르십시오.</li>';
+      return;
+    }
+    hits.forEach(function (i) {
+      var r = FR[i], d = nearestKm({ lat: r[6], lon: r[7] });
+      var li = document.createElement("li"), b = document.createElement("button");
+      b.type = "button";
+      var info = [r[3], r[4], r[5]].filter(Boolean).join(" · ");
+      b.innerHTML = "<strong>" + r[0] + " " + r[1] + "</strong><small>" + info + (r[2] ? " · 면허 " + r[2] : "") + "</small>" +
+        (d > K.max_km ? '<small class="far-note">근처 수온 관측소가 없어 예보를 낼 수 없습니다</small>'
+                      : (d > K.warn_km ? '<small class="far-note">관측소가 ' + d.toFixed(0) + "km 떨어져 참고용입니다</small>" : ""));
+      b.addEventListener("click", function () { chooseFarmRow(i); });
+      li.appendChild(b);
+      ul.appendChild(li);
+    });
+  }
+
+  function renderMyFarms() {
+    document.getElementById("my-farms-field").hidden = !myFarms.length;
+    var box = document.getElementById("my-farms");
+    box.innerHTML = "";
+    myFarms.forEach(function (f) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("aria-pressed", samePlace(f, state.farm) ? "true" : "false");
+      b.innerHTML = f.name + "<small>" + (f.species || "") + "</small>";
+      b.addEventListener("click", function () {
+        state.gps = false;
+        setSpecies(speciesIndexByName(f.species));
+        setFarm({ lat: f.lat, lon: f.lon, label: f.name, farm: f.farm || null, mine: true });
+      });
+      box.appendChild(b);
+    });
+    var list = document.getElementById("manage-list");
+    list.innerHTML = "";
+    myFarms.forEach(function (f, idx) {
+      var li = document.createElement("li");
+      var span = document.createElement("span");
+      span.textContent = f.name + " · " + (f.species || "");
+      var del = document.createElement("button");
+      del.type = "button";
+      del.className = "btn";
+      del.textContent = "삭제";
+      del.addEventListener("click", function () {
+        if (del.dataset.armed !== "1") { del.dataset.armed = "1"; del.textContent = "한 번 더 누르면 삭제"; return; }
+        myFarms.splice(idx, 1);
+        saveMy();
+        render();
+      });
+      li.appendChild(span);
+      li.appendChild(del);
+      list.appendChild(li);
+    });
+    document.getElementById("move-code").value = encodeMy(myFarms);
+
+    var saveBox = document.getElementById("save-box");
+    var saved = myFarms.some(function (f) { return samePlace(f, state.farm); });
+    saveBox.hidden = saved;
+    var nameInput = document.getElementById("save-name");
+    if (!saved && document.activeElement !== nameInput) nameInput.value = String(state.farm.label || "").slice(0, 30);
+  }
+
+  function buildMyFarmControls() {
+    var input = document.getElementById("farm-search");
+    input.addEventListener("input", renderResults);
+    input.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        var hits = searchFarms(input.value);
+        if (hits.length) chooseFarmRow(hits[0]);
+      }
+    });
+    document.getElementById("save-btn").addEventListener("click", function () {
+      var name = document.getElementById("save-name").value.trim() || String(state.farm.label || "내 양식장");
+      myFarms.push({ name: name.slice(0, 30), lat: state.farm.lat, lon: state.farm.lon,
+                     species: F.species[state.species].name, farm: state.farm.farm || null });
+      saveMy();
+      state.farm = { lat: state.farm.lat, lon: state.farm.lon, label: name, farm: state.farm.farm || null, mine: true };
+      save("farm", JSON.stringify(state.farm));
+      render();
+    });
+    var mb = document.getElementById("manage-btn");
+    mb.addEventListener("click", function () {
+      var m = document.getElementById("manage");
+      m.hidden = !m.hidden;
+      mb.setAttribute("aria-expanded", m.hidden ? "false" : "true");
+    });
+    var msg = document.getElementById("move-msg");
+    document.getElementById("copy-code").addEventListener("click", function () {
+      var ta = document.getElementById("move-code");
+      var done = function () { msg.textContent = "코드를 복사했습니다. 새 휴대폰의 같은 칸에 붙여 넣으십시오."; };
+      var fallback = function () { ta.focus(); ta.select(); msg.textContent = "코드가 선택되었습니다. 길게 눌러 '복사'를 고르십시오."; };
+      try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
+    });
+    document.getElementById("import-code").addEventListener("click", function () {
+      var got = decodeMy(document.getElementById("move-code").value);
+      if (!got) { msg.textContent = "코드를 읽지 못했습니다. HSW1: 로 시작하는 코드 전체를 붙여 넣으십시오."; return; }
+      var added = 0;
+      got.forEach(function (f) {
+        if (!myFarms.some(function (m) { return samePlace(m, f) && m.name === f.name; })) { myFarms.push(f); added++; }
+      });
+      saveMy();
+      msg.textContent = "양식장 " + added + "곳을 가져왔습니다.";
+      render();
+    });
+  }
+
   // ---------- 이 위치의 예보 계산 ----------
   function estimate() {
     var dateKey = state.date;
@@ -274,12 +463,16 @@
       b.addEventListener("click", function () { state.gps = false; setFarm(presetFarm(p)); });
       box.appendChild(b);
     });
-    var g = document.createElement("button");
-    g.type = "button";
-    g.className = "gps";
-    g.textContent = "내 위치";
-    g.addEventListener("click", locate);
-    box.appendChild(g);
+    if (!OPTIONS.noGps) {
+      var g = document.createElement("button");
+      g.type = "button";
+      g.className = "gps";
+      g.textContent = "내 위치";
+      g.addEventListener("click", locate);
+      box.appendChild(g);
+    } else {
+      box.classList.remove("five");
+    }
 
     var ss = document.getElementById("station-select");
     var first = document.createElement("option");
@@ -353,9 +546,20 @@
       return;
     }
     map = L.map("map", { zoomControl: true, attributionControl: true }).setView([34.62, 127.6], 9);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 16, minZoom: 7, attribution: "© OpenStreetMap"
-    }).addTo(map);
+    // 바탕: 우리 해안선(Natural Earth). 인터넷 지도 타일이 없어도 육지·섬 모양이 보이게 타일 아래 층에 그림
+    if (window.COAST) {
+      map.createPane("coast").style.zIndex = 150;
+      window.COAST.forEach(function (ring) {
+        L.polygon(ring, { pane: "coast", color: "#8a96a3", weight: 1, fillColor: "#d7dde3", fillOpacity: 1, interactive: false }).addTo(map);
+      });
+    }
+    if (!OPTIONS.noTiles) {
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 16, minZoom: 7, attribution: "© OpenStreetMap"
+      }).addTo(map);
+    } else {
+      map.attributionControl.addAttribution("해안선: Natural Earth");
+    }
     ST.forEach(function (s) {
       L.circleMarker([s.lat, s.lon], { radius: 5, color: "#ffffff", weight: 1.5, fillColor: "#1f5fa8", fillOpacity: 1 })
         .bindTooltip(s.name, { direction: "top" })
@@ -406,6 +610,17 @@
     } else {
       place.innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
     }
+    var fmInfo = state.farm.farm;
+    if (fmInfo && fmInfo.lcns) place.insertAdjacentHTML("beforeend", "<br>면허 " + fmInfo.lcns + " · " + [fmInfo.knd, fmInfo.mthd].filter(Boolean).join(" · "));
+    var note = document.getElementById("farm-note");
+    if (fmInfo && speciesFromKind((fmInfo.kind || "") + " " + (fmInfo.knd || "")) < 0) {
+      note.hidden = false;
+      note.textContent = "이 양식장 품종(" + (fmInfo.kind || fmInfo.knd || "등록 정보 없음") + ")은 앱에 기준 수온이 없습니다. " +
+        "아래 '기르는 어종'에서 가장 가까운 어종을 고르십시오. 지금은 " + sp.name + " 기준으로 보여 줍니다.";
+    } else {
+      note.hidden = true;
+    }
+    renderMyFarms();
     drawMap(est);
 
     document.getElementById("unavailable").hidden = !est.none;
@@ -669,7 +884,16 @@
     }
   }
 
+  // 처음 여는 기기라도 저장된 내 양식장이 있으면 그걸 먼저 보여줌
+  if (load("farm", null) === null && myFarms.length) {
+    var f0 = myFarms[0];
+    state.farm = { lat: f0.lat, lon: f0.lon, label: f0.name, farm: f0.farm || null, mine: true };
+    var s0 = speciesIndexByName(f0.species);
+    if (s0 >= 0) state.species = s0;
+  }
+
   buildControls();
+  buildMyFarmControls();
   buildMap();
   renderMeta();
   render();
