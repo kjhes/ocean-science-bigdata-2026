@@ -28,6 +28,8 @@
 }
 
 * { box-sizing: border-box; }
+/* hidden 속성은 항상 숨김 (display를 지정한 상자(.manage 등)가 숨김을 덮어쓰던 문제 방지) */
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -96,9 +98,64 @@ main.wrap { padding-block: 20px 32px; }
 .place-now { margin: 4px 0 0; font-size: 1rem; }
 .place-now strong { font-size: 1.05rem; }
 
+/* 입력칸·버튼 (드롭다운과 같은 모양) */
+.input {
+  width: 100%; min-height: 56px; min-width: 0;
+  font: inherit; font-size: 1.05rem; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule-strong); border-radius: 0;
+  padding: 0 12px; -webkit-appearance: none; appearance: none;
+}
+.input.code { min-height: 0; padding: 10px 12px; font-size: 0.85rem; font-family: Consolas, "Courier New", monospace; resize: vertical; }
+.input:focus-visible, .btn:focus-visible, .link-btn:focus-visible, .results button:focus-visible, .my-farms button:focus-visible {
+  outline: 3px solid var(--focus); outline-offset: 2px;
+}
+.btn {
+  min-height: 52px; padding: 0 18px; font: inherit; font-weight: 700; font-size: 1rem;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--rule-strong); cursor: pointer;
+}
+.btn.primary { background: var(--navy); color: #fff; border-color: var(--navy); }
+.btn:hover:not(.primary) { background: #e4eaf0; }
+.btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.link-btn { font: inherit; font-size: 0.92rem; color: var(--navy); background: none; border: 0; padding: 4px 0; text-decoration: underline; cursor: pointer; }
+.field-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+
+/* 양식장 찾기 결과 */
+.results { list-style: none; margin: 0; padding: 0; border: 1px solid var(--rule-strong); max-height: 360px; overflow-y: auto; }
+.results li + li { border-top: 1px solid var(--rule); }
+.results button {
+  display: block; width: 100%; text-align: left; font: inherit; color: var(--ink);
+  background: var(--surface); border: 0; padding: 10px 12px; cursor: pointer; min-height: 56px;
+}
+.results button:hover { background: #eef2f6; }
+.results strong { display: block; font-size: 1.02rem; }
+.results small { display: block; font-size: 0.85rem; color: var(--muted); }
+.results .far-note { color: #9b2c2c; }
+.results .empty { padding: 12px; color: var(--muted); }
+
+/* 내 양식장 */
+.my-farms { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.my-farms button {
+  min-height: 56px; font: inherit; font-weight: 700; font-size: 1rem; text-align: left; padding: 8px 12px;
+  color: var(--ink); background: var(--surface); border: 1px solid var(--rule-strong); cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.my-farms button small { display: block; font-weight: 400; font-size: 0.8rem; color: var(--muted); }
+.my-farms button[aria-pressed="true"] { background: var(--navy); color: #fff; box-shadow: inset 0 -4px 0 var(--focus); }
+.my-farms button[aria-pressed="true"] small { color: #d6e0ea; }
+.manage { border: 1px solid var(--rule); padding: 12px; display: grid; gap: 12px; background: #f7f9fa; }
+.manage-list { list-style: none; margin: 0; padding: 0; }
+.manage-list li { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--rule); }
+.manage-list li:last-child { border-bottom: 0; }
+.manage-list span { min-width: 0; overflow-wrap: anywhere; }
+.manage-move { display: grid; gap: 8px; }
+
+.save-box { border-top: 1px solid var(--rule); padding-top: 14px; display: grid; gap: 6px; }
+.save-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.farm-note { margin: 0; padding: 8px 10px; background: #fffbe6; border: 1px solid var(--rule-strong); font-size: 0.95rem; }
+
 /* 지도 */
 .map-wrap { display: grid; gap: 6px; }
-.map { height: 320px; border: 1px solid var(--rule-strong); background: #dde5ec; }
+.map { height: 320px; border: 1px solid var(--rule-strong); background: #eef4f8; }  /* 바다색 (타일이 없을 때 보임) */
 .map-hint { margin: 0; font-size: 0.9rem; color: var(--muted); }
 .leaflet-container { font-family: inherit; font-size: 0.9rem; }
 .leaflet-tooltip { border-radius: 0; box-shadow: none; border: 1px solid var(--ink); }
@@ -268,10 +325,10 @@ table { border-collapse: collapse; width: 100%; }
   :root { font-size: 17px; }
   .field-row { grid-template-columns: minmax(0, 1fr); }
   .segmented button { font-size: 1rem; }
-  .segmented.five { grid-template-columns: repeat(3, 1fr); }
-  .segmented.five button { border-top: 1px solid var(--rule-strong); }
-  .segmented.five button:nth-child(-n+3) { border-top: 0; }
-  .segmented.five button:nth-child(3n+1) { border-left: 0; }
+  /* 휴대폰: 지역 4개는 2x2, '내 위치'는 한 줄 전체 */
+  .segmented.five { grid-template-columns: repeat(2, 1fr); gap: 6px; border: 0; }
+  .segmented.five button { border: 1px solid var(--rule-strong); }
+  .segmented.five button.gps { grid-column: 1 / -1; }
   .map { height: 260px; }
   .status { padding: 16px 14px 14px; border-left-width: 10px; }
   .block { padding: 16px 14px; }
