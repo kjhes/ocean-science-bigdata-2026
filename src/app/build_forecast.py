@@ -52,7 +52,7 @@ def refresh_data() -> list:
 def load_species() -> list:
     sp = pd.read_csv(SPECIES_CONDITIONS_DIR / "fish_temperature_thresholds.csv")
     return [{"name": r.species, "opt_min": float(r.temp_opt_min), "opt_max": float(r.temp_opt_max),
-             "danger": float(r.temp_lethal)} for r in sp.itertuples()]
+             "danger": float(r.temp_lethal), "src": str(r.source)} for r in sp.itertuples()]
 
 
 def r1(v):

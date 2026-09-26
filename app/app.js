@@ -54,6 +54,19 @@
     "조피볼락(우럭)": {
       warn: "가두리 그물을 교체·청소하고, 긴급 방류에 대비해 질병 검사를 받아 두십시오.",
       crit: "저층 물을 퍼 올려 섞어 주거나 가두리를 가라앉히고, 차광막으로 스트레스를 줄이십시오."
+    },
+    // 아래는 국립수산과학원 「자연재해 대비 양식장 관리요령」 표 5-6·5-7·5-8 요약
+    "전복(참전복)": {
+      warn: "조기 출하하고, 먹이(해조류) 공급량을 줄이며, 차광막과 산소 공급 장치를 미리 점검하십시오.",
+      crit: "먹이 공급을 멈추고, 차광막을 치고, 액화산소를 넣으십시오. 가두리는 저층 물 섞기나 침하를 하십시오."
+    },
+    "멍게(우렁쉥이)": {
+      warn: "어장 수온을 자주 확인하고, 줄을 깊은 곳으로 내릴 준비를 하십시오.",
+      crit: "작업을 멈추고, 수하연(매단 줄)을 깊이 내려 차가운 물에 두십시오."
+    },
+    "굴(참굴)": {
+      warn: "어장 수온을 자주 확인하고, 수하연을 내릴 준비를 하십시오.",
+      crit: "작업을 멈추고, 수온이 지나치게 오르면 수하연을 깊이 내리십시오."
     }
   };
 
@@ -178,7 +191,12 @@
   // ---------- 상태 ----------
   var state = {
     farm: null,  // {lat, lon, label, code(관측소 선택 시)}
-    species: Math.min(Number(load("species", 1)) || 0, F.species.length - 1),
+    // 어종은 이름으로 저장 (기준표 순서가 바뀌어도 같은 어종 유지)
+    species: (function () {
+      var n = load("species_name", "");
+      for (var i = 0; i < F.species.length; i++) if (F.species[i].name === n) return i;
+      return 0;
+    })(),
     date: "latest",
     gps: false
   };
@@ -227,7 +245,7 @@
   function setSpecies(i) {
     if (i < 0) return;
     state.species = i;
-    save("species", String(i));
+    save("species_name", F.species[i].name);
     document.getElementById("species-select").value = i;
   }
   // 옮기기 코드: 목록(JSON)을 글자 코드로 바꿔 다른 기기에 붙여 넣게 함
@@ -247,8 +265,10 @@
   var FR = (window.FARMS && window.FARMS.rows) || [];
   function norm(s) { return String(s || "").replace(/\s+/g, "").toLowerCase(); }
   var FR_IDX = FR.map(function (r) { return norm(r[0] + r[1] + r[2] + r[3] + r[4] + r[5]); });
+  // 어장정보 품종 글자 → 앱 기준표 품종 (기준표: data/external/species_conditions, 공식 출처 있는 10종)
   var SPECIES_KEYS = [["넙치", "넙치"], ["광어", "넙치"], ["우럭", "조피볼락"], ["조피볼락", "조피볼락"], ["참돔", "참돔"],
-                      ["감성돔", "감성돔"], ["숭어", "숭어"], ["농어", "농어"], ["돌돔", "돌돔"], ["방어", "방어"]];
+                      ["감성돔", "감성돔"], ["돌돔", "돌돔"], ["강도다리", "강도다리"], ["숭어", "숭어"],
+                      ["전복", "전복"], ["우렁쉥이", "멍게"], ["멍게", "멍게"], ["굴", "굴"]];
   function speciesFromKind(text) {
     for (var k = 0; k < SPECIES_KEYS.length; k++) {
       if (String(text || "").indexOf(SPECIES_KEYS[k][0]) >= 0) {
@@ -505,7 +525,7 @@
       sel.appendChild(o);
     });
     sel.value = state.species;
-    sel.addEventListener("change", function () { state.species = +sel.value; save("species", sel.value); render(); });
+    sel.addEventListener("change", function () { state.species = +sel.value; save("species_name", F.species[+sel.value].name); render(); });
 
     var ds = document.getElementById("date-select");
     var o0 = document.createElement("option");
@@ -666,6 +686,7 @@
       sp.danger.toFixed(1) + "℃<small>" + (sp.danger - F.alert_margin).toFixed(2).replace(/0$/, "") + "℃부터 위험 표시</small>";
     document.getElementById("fact-opt").innerHTML =
       sp.opt_min + "~" + sp.opt_max + "℃<small>고수온 특보 기준 " + F.official_alert_temp + "℃</small>";
+    document.getElementById("fact-src").textContent = sp.src ? "기준 수온 출처: " + sp.src : "";
 
     renderTable(est, lvDays, lvToday === "crit" ? -1 : firstCrit);
     renderChart(est, sp);

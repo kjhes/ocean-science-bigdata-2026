@@ -28,3 +28,10 @@ reports/recursive_experiment/predictions.csv
 reports/spatial_experiment/loso_predictions.csv
 reports/improve_experiment/errors.csv
 reports/improve_experiment/crossing.csv
+
+# 국립수산과학원 양식기술 매뉴얼 원문 PDF (합계 약 700MB, nifs.go.kr/cmmn/file/farm/ 에서 다시 받을 수 있음)
+docs/reference/nifs_manuals/
+
+# 국립수산과학원 양식기술 매뉴얼 원본 PDF (합계 약 700MB, 전복 매뉴얼은 GitHub 파일 한도 초과)
+# 받는 곳: https://www.nifs.go.kr/cmmn/file/farm/farm_번호.pdf  (번호·쪽은 docs/어종별_기준수온_조사.md 참고)
+docs/reference/nifs_manuals/

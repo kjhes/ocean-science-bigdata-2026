@@ -229,6 +229,7 @@ button:focus-visible, .select:focus-visible {
 .facts dt { font-size: 0.85rem; color: var(--muted); }
 .facts dd { margin: 2px 0 0; font-size: 1.2rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .facts dd small { display: block; font-size: 0.8rem; font-weight: 400; color: var(--muted); }
+.fact-src { margin: 10px 0 0; font-size: 0.82rem; color: var(--muted); }
 
 /* ---------- 공통 블록 ---------- */
 .block {
