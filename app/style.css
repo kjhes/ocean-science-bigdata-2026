@@ -66,6 +66,16 @@ main.wrap { padding-block: 20px 32px; }
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
+/* 위치 → 어종 2단계로 나눠 진행 - 한 화면에 다 몰아넣지 않고 하나씩 입력하게 함 */
+.step { display: grid; gap: 16px; }
+.step[hidden] { display: none; }
+.step-title { margin: 0; font-weight: 700; font-size: 1.05rem; color: var(--navy); }
+.step-actions { margin-top: 4px; }
+.btn.wide { width: 100%; }
+.step-place-echo { margin: 0; font-size: 1.05rem; }
+.step-place-echo strong { font-size: 1.1rem; }
+.date-details summary { cursor: pointer; font-weight: 700; font-size: 0.95rem; color: var(--navy); padding: 4px 0; }
+
 /* 양식장 / 전국 수온 예측 탭 - 등록된 양식장 위치와 임의 지점 조회를 섞이지 않게 분리 */
 .tabs { display: grid; grid-template-columns: repeat(2, 1fr); border: 1px solid var(--rule-strong); }
 .tab {
