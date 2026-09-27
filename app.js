@@ -647,15 +647,24 @@
     ss.value = state.farm.code && !state.farm.preset ? state.farm.code : "";
     document.body.classList.toggle("showing-past", !est.none && est.past);
 
-    var place = document.getElementById("place-now");
+    // 위치 이름 / 관측소 거리(보조 정보) / 양식장 등록정보(칩) 를 한 문장으로 뭉치지 않고 줄을 나눠
+    // 각각 알아보기 쉽게 한다 (전부 같은 줄글로 붙어 있으면 뭐가 중요한지 안 보인다는 지적 반영)
+    document.getElementById("place-now").innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
+    var metaEl = document.getElementById("place-meta");
     if (est.nn) {
-      place.innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong> · 가장 가까운 관측소 " +
-        est.nn.s.name + " " + est.nn.d.toFixed(1) + "km";
+      metaEl.hidden = false;
+      metaEl.textContent = "가장 가까운 관측소 " + est.nn.s.name + " · " + est.nn.d.toFixed(1) + "km";
     } else {
-      place.innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
+      metaEl.hidden = true;
     }
     var fmInfo = state.farm.farm;
-    if (fmInfo && fmInfo.lcns) place.insertAdjacentHTML("beforeend", "<br>면허 " + fmInfo.lcns + " · " + [fmInfo.knd, fmInfo.mthd].filter(Boolean).join(" · "));
+    var farmLineEl = document.getElementById("place-farm");
+    if (fmInfo && fmInfo.lcns) {
+      farmLineEl.hidden = false;
+      farmLineEl.textContent = "면허 " + fmInfo.lcns + " · " + [fmInfo.knd, fmInfo.mthd].filter(Boolean).join(" · ");
+    } else {
+      farmLineEl.hidden = true;
+    }
     var note = document.getElementById("farm-note");
     if (fmInfo && speciesFromKind((fmInfo.kind || "") + " " + (fmInfo.knd || "")) < 0) {
       note.hidden = false;
