@@ -261,6 +261,23 @@ button:focus-visible, .select:focus-visible {
 .block-note { font-size: 0.9rem; color: var(--muted); }
 .hint { margin: 12px 0 0; font-size: 0.92rem; color: var(--muted); }
 
+/* 예보 근거·정확도 - 매번 다 펼쳐 보여주면 화면이 복잡해져서 접어 둠(계산에 쓰인 관측소, 그동안의 정확도표) */
+.details-block { padding: 0; }
+.details-block summary {
+  cursor: pointer; list-style: none; padding: 18px 20px; font-weight: 700; font-size: 1.05rem; color: var(--ink-2);
+}
+.details-block summary::-webkit-details-marker { display: none; }
+.details-block summary::after { content: "펼치기 ▾"; float: right; font-weight: 400; font-size: 0.9rem; color: var(--navy); }
+.details-block[open] summary::after { content: "접기 ▴"; }
+.details-block[open] summary { border-bottom: 2px solid var(--ink); }
+.detail-sub { padding: 4px 20px 18px; }
+.detail-sub + .detail-sub { border-top: 1px solid var(--rule); padding-top: 16px; }
+.detail-sub h3 { font-size: 1.05rem; margin: 0 0 10px; }
+
+/* 같은 카드 안에서 표·그래프처럼 이어지는 내용을 나눌 때 (블록을 새로 만들지 않음) */
+.sub-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--rule); }
+.sub-block h3 { font-size: 1.05rem; margin: 0 0 6px; }
+
 /* ---------- 7일 표 ---------- */
 table { border-collapse: collapse; width: 100%; }
 .days th {

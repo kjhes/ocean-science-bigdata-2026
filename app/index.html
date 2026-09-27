@@ -127,14 +127,12 @@
       <tbody></tbody>
     </table>
     <p class="hint">예상 수온 아래 작은 숫자는 실제 수온이 들어올 가능성이 높은 범위입니다. 4일 뒤부터는 오르내리는 흐름을 보는 참고용입니다.</p>
-  </section>
 
-  <section class="block" aria-labelledby="chart-title">
-    <div class="block-head">
-      <h2 id="chart-title">최근 2주와 앞으로 7일</h2>
+    <div class="sub-block">
+      <h3 id="chart-title">최근 2주와 앞으로 7일 그래프</h3>
+      <div class="legend" id="legend"></div>
+      <div class="chart" id="chart"></div>
     </div>
-    <div class="legend" id="legend"></div>
-    <div class="chart" id="chart"></div>
   </section>
 
   <section class="block" aria-labelledby="action-title">
@@ -146,24 +144,24 @@
     <p class="hint">국립수산과학원 「자연재해 대비 양식장 관리요령」 고수온 편을 요약했습니다. 피해가 생기면 시·군청에 바로 신고하십시오.</p>
   </section>
 
-  <section class="block" aria-labelledby="src-title">
-    <div class="block-head">
-      <h2 id="src-title">이 위치의 예보를 만든 관측소</h2>
-    </div>
-    <table class="nb" id="nb">
-      <thead><tr><th scope="col">관측소</th><th scope="col" class="num">거리</th><th scope="col" class="num">반영 비율</th><th scope="col" class="num">현재 수온</th></tr></thead>
-      <tbody></tbody>
-    </table>
-    <p class="hint" id="nb-note"></p>
-  </section>
+  <details class="block details-block">
+    <summary>이 예보는 어떻게 만들었고 얼마나 맞나요</summary>
 
-  <section class="block" aria-labelledby="acc-title">
-    <div class="block-head">
-      <h2 id="acc-title">이 예보는 얼마나 맞나요</h2>
+    <div class="detail-sub">
+      <h3 id="src-title">이 위치의 예보를 만든 관측소</h3>
+      <table class="nb" id="nb">
+        <thead><tr><th scope="col">관측소</th><th scope="col" class="num">거리</th><th scope="col" class="num">반영 비율</th><th scope="col" class="num">현재 수온</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="hint" id="nb-note"></p>
     </div>
-    <table class="acc" id="acc"></table>
-    <p class="hint" id="acc-note"></p>
-  </section>
+
+    <div class="detail-sub">
+      <h3 id="acc-title">그동안의 정확도</h3>
+      <table class="acc" id="acc"></table>
+      <p class="hint" id="acc-note"></p>
+    </div>
+  </details>
   </div>
 </main>
 
