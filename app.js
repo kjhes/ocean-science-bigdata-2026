@@ -198,20 +198,22 @@
       return 0;
     })(),
     date: "latest",
-    gps: false
+    gps: false,
+    step: 1,            // 1=위치 고르기, 2=어종 고르기+결과 - 한 화면에 다 안 보여주고 순서대로 진행
+    locationChosen: false  // 사용자가 실제로 위치를 고른 적 있는지(처음 온 사람만 1단계부터 시작)
   };
   (function initFarm() {
     try {
       var f = JSON.parse(load("farm", "null"));
-      if (f && isFinite(f.lat) && isFinite(f.lon)) state.farm = f;
+      if (f && isFinite(f.lat) && isFinite(f.lon)) { state.farm = f; state.locationChosen = true; }
     } catch (e) { /* 무시 */ }
     var q;
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
     if (q) {
       var lat = parseFloat(q.get("lat")), lon = parseFloat(q.get("lon"));
-      if (isFinite(lat) && isFinite(lon)) state.farm = { lat: lat, lon: lon, label: "주소로 지정한 위치" };
+      if (isFinite(lat) && isFinite(lon)) { state.farm = { lat: lat, lon: lon, label: "주소로 지정한 위치" }; state.locationChosen = true; }
       var place = q.get("place");
-      F.presets.forEach(function (p) { if (p.label === place) state.farm = presetFarm(p); });
+      F.presets.forEach(function (p) { if (p.label === place) { state.farm = presetFarm(p); state.locationChosen = true; } });
       if (q.get("species")) F.species.forEach(function (s, i) { if (s.name.indexOf(q.get("species")) === 0) state.species = i; });
       if (q.get("date")) state.date = q.get("date");
     }
@@ -495,6 +497,23 @@
     activate(isFarmTabLocation(state.farm) ? "farm" : "explore");
   }
 
+  // ---------- 1단계(위치) → 2단계(어종+결과) ----------
+  // 위치·어종·결과를 한 화면에 다 몰아넣지 말고 하나씩 진행하라는 지적을 반영.
+  // 위치를 이미 골라 본 사용자(저장된 기록·URL 딥링크·내 양식장)는 2단계부터 시작해
+  // 매번 위치를 다시 고르게 하지 않는다(state.locationChosen, 위에서 계산).
+  function buildSteps() {
+    var stepLoc = document.getElementById("step-location");
+    var stepSp = document.getElementById("step-species");
+    function apply(n) {
+      stepLoc.hidden = n !== 1;
+      stepSp.hidden = n !== 2;
+    }
+    function go(n) { state.step = n; apply(n); render(); }
+    document.getElementById("step1-next").addEventListener("click", function () { go(2); });
+    document.getElementById("step2-back").addEventListener("click", function () { go(1); });
+    apply(state.step);  // 첫 화면 그리기는 아래 공통 render()가 처리
+  }
+
   // ---------- 조회 조건 ----------
   function buildControls() {
     var box = document.getElementById("preset-buttons");
@@ -675,6 +694,14 @@
     }
     renderMyFarms();
     drawMap(est);
+    document.getElementById("step-place-echo").innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
+
+    // 2단계(어종 고르기)로 넘어가기 전에는 예보 결과를 보여주지 않는다 - 위치만 먼저 확정하게 함
+    if (state.step < 2) {
+      document.getElementById("unavailable").hidden = true;
+      document.getElementById("result").hidden = true;
+      return;
+    }
 
     document.getElementById("unavailable").hidden = !est.none;
     document.getElementById("result").hidden = est.none;
@@ -944,11 +971,15 @@
     state.farm = { lat: f0.lat, lon: f0.lon, label: f0.name, farm: f0.farm || null, mine: true };
     var s0 = speciesIndexByName(f0.species);
     if (s0 >= 0) state.species = s0;
+    state.locationChosen = true;
   }
+  // 위치를 골라 본 적 있으면(저장 기록·URL·내 양식장) 2단계(어종+결과)부터, 완전 처음이면 1단계부터
+  state.step = state.locationChosen ? 2 : 1;
 
   buildControls();
   buildMyFarmControls();
   buildTabs();
+  buildSteps();
   buildMap();
   renderMeta();
   render();
