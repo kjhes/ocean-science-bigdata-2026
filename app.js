@@ -226,6 +226,7 @@
   }
   function setFarm(f) {
     state.farm = f;
+    state.locationChosen = true;  // 실제로 위치를 골랐으니 "선택한 위치: 없음" 표시는 이제 끝
     save("farm", JSON.stringify(f));
     render();
   }
@@ -668,13 +669,19 @@
 
     // 위치 이름 / 관측소 거리(보조 정보) / 양식장 등록정보(칩) 를 한 문장으로 뭉치지 않고 줄을 나눠
     // 각각 알아보기 쉽게 한다 (전부 같은 줄글로 붙어 있으면 뭐가 중요한지 안 보인다는 지적 반영)
-    document.getElementById("place-now").innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
     var metaEl = document.getElementById("place-meta");
-    if (est.nn) {
-      metaEl.hidden = false;
-      metaEl.textContent = "가장 가까운 관측소 " + est.nn.s.name + " · " + est.nn.d.toFixed(1) + "km";
-    } else {
+    if (!state.locationChosen) {
+      // 아직 직접 고른 적 없는 화면 기본값(예시 관측소)을 실제로 고른 것처럼 보여주지 않음
+      document.getElementById("place-now").textContent = "선택한 위치: 없음";
       metaEl.hidden = true;
+    } else {
+      document.getElementById("place-now").innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
+      if (est.nn) {
+        metaEl.hidden = false;
+        metaEl.textContent = "가장 가까운 관측소 " + est.nn.s.name + " · " + est.nn.d.toFixed(1) + "km";
+      } else {
+        metaEl.hidden = true;
+      }
     }
     var fmInfo = state.farm.farm;
     var farmLineEl = document.getElementById("place-farm");
@@ -973,8 +980,9 @@
     if (s0 >= 0) state.species = s0;
     state.locationChosen = true;
   }
-  // 위치를 골라 본 적 있으면(저장 기록·URL·내 양식장) 2단계(어종+결과)부터, 완전 처음이면 1단계부터
-  state.step = state.locationChosen ? 2 : 1;
+  // 매번 1단계(위치 고르기)부터 시작 - 이전 기록이 있다고 2단계로 건너뛰면
+  // 뭘 보고 있는지 헷갈린다는 지적. state.locationChosen은 "선택한 위치" 표시 여부에만 쓴다.
+  state.step = 1;
 
   buildControls();
   buildMyFarmControls();
