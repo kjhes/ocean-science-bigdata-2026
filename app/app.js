@@ -472,6 +472,29 @@
     return levels.reduce(function (a, b) { return !b ? a : (!a || RANK[b] > RANK[a] ? b : a); }, null);
   }
 
+  // ---------- 탭 (양식장 / 전국 수온 예측) ----------
+  // 등록된 양식장 위치(정확)와 지도 클릭 등 임의 지점(참고용)을 섞어서 보여주면
+  // "이 위치가 내 양식장과 관련 있다"는 오해를 준다는 지적을 반영해 입력을 분리했다.
+  // 아래에 나오는 예보·판정 결과는 두 탭 어느 쪽으로 골라도 같은 방식으로 계산된다.
+  function isFarmTabLocation(f) { return !!(f && (f.farm || f.mine)); }
+  function buildTabs() {
+    var tabFarm = document.getElementById("tab-btn-farm"), tabExplore = document.getElementById("tab-btn-explore");
+    var panelFarm = document.getElementById("panel-farm"), panelExplore = document.getElementById("panel-explore");
+    function activate(tab) {
+      var onFarm = tab === "farm";
+      tabFarm.setAttribute("aria-selected", onFarm ? "true" : "false");
+      tabFarm.tabIndex = onFarm ? 0 : -1;
+      tabExplore.setAttribute("aria-selected", onFarm ? "false" : "true");
+      tabExplore.tabIndex = onFarm ? -1 : 0;
+      panelFarm.hidden = !onFarm;
+      panelExplore.hidden = onFarm;
+    }
+    tabFarm.addEventListener("click", function () { activate("farm"); });
+    tabExplore.addEventListener("click", function () { activate("explore"); });
+    // 시작할 때는 현재 위치가 등록된 양식장(또는 저장해 둔 내 양식장)인지에 따라 탭을 고른다
+    activate(isFarmTabLocation(state.farm) ? "farm" : "explore");
+  }
+
   // ---------- 조회 조건 ----------
   function buildControls() {
     var box = document.getElementById("preset-buttons");
@@ -606,7 +629,8 @@
       });
     }
     L.circleMarker(f, { radius: 10, color: "#d03b3b", weight: 3, fillColor: "#ffffff", fillOpacity: 1 })
-      .bindTooltip("양식장 위치", { direction: "top", permanent: false }).addTo(farmLayer);
+      .bindTooltip(isFarmTabLocation(state.farm) ? "양식장 위치" : "선택한 위치", { direction: "top", permanent: false })
+      .addTo(farmLayer);
     if (!map.getBounds().pad(-0.1).contains(f)) map.setView(f, Math.max(map.getZoom(), 10));
   }
 
@@ -915,6 +939,7 @@
 
   buildControls();
   buildMyFarmControls();
+  buildTabs();
   buildMap();
   renderMeta();
   render();
