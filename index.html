@@ -193,6 +193,12 @@
   </div>
 </footer>
 
+<script>
+  // OpenStreetMap 타일 서버(자원봉사 운영, osm.wiki/Blocked 정책)는 여러 사용자가 동시에 열면
+  // 차단될 수 있어 기본값으로 끔. 대신 자체 내장 해안선(Natural Earth, data/coast.js)만으로
+  // 인터넷 연결이나 외부 서버 없이도 지도 배경을 그린다.
+  window.APP_OPTIONS = { noTiles: true };
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="data/coast.js"></script>
 <script src="data/farms.js"></script>
