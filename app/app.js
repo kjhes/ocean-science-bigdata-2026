@@ -14,7 +14,7 @@
   var F = window.FORECAST;
   if (!F || !F.stations) {
     document.querySelector("main").innerHTML =
-      '<p class="notice">예보 자료(data/forecast.js)를 찾을 수 없습니다. src/app/build_forecast.py 를 먼저 실행하십시오.</p>';
+      '<p class="notice">예보 자료(data/forecast.js)를 찾을 수 없어요. src/app/build_forecast.py 를 먼저 실행해 주세요.</p>';
     return;
   }
 
@@ -28,47 +28,80 @@
 
   var ACTIONS = {
     good: [
-      "산소공급기·냉각시설을 미리 점검해 두십시오.",
-      "영양제를 섞은 사료로 물고기 체력을 길러 두십시오.",
-      "여름철에는 어장 주변 수온을 매일 확인하십시오."
+      "산소공급기·냉각시설을 미리 점검해 둬요.",
+      "영양제를 섞은 사료로 물고기 체력을 길러 둬요.",
+      "여름철에는 어장 주변 수온을 매일 확인해요."
     ],
     warn: [
-      "사료 주는 양을 줄이십시오.",
-      "질병 예방과 치료를 미리 끝내 두십시오.",
-      "가두리 그물 청소·교체, 산소공급기·냉각시설 점검을 마치십시오.",
-      "조기 출하나 분산 수용을 검토하십시오."
+      "사료 주는 양을 줄여요.",
+      "질병 예방과 치료를 미리 끝내 둬요.",
+      "가두리 그물 청소·교체, 산소공급기·냉각시설 점검을 마쳐요.",
+      "조기 출하나 분산 수용을 검토해요."
     ],
     crit: [
-      "사료 공급을 줄이거나 멈추십시오.",
-      "액화산소·산소발생기·저층해수 공급 장비를 모두 가동하십시오.",
-      "선별·망갈이처럼 물고기를 놀라게 하는 작업은 하지 마십시오.",
-      "어장 수온과 용존산소를 하루 여러 번 직접 재십시오.",
-      "폐사가 생기면 시·군청에 바로 신고하십시오."
+      "사료 공급을 줄이거나 멈춰요.",
+      "액화산소·산소발생기·저층해수 공급 장비를 모두 가동해요.",
+      "선별·망갈이처럼 물고기를 놀라게 하는 작업은 하지 마세요.",
+      "어장 수온과 용존산소를 하루 여러 번 직접 재요.",
+      "폐사가 생기면 시·군청에 바로 신고해요."
     ]
   };
   var SPECIES_ACTIONS = {
     "넙치(광어)": {
-      warn: "조기 출하·분산을 하고, 사육 수온과 용존산소를 수시로 재십시오.",
-      crit: "수온이 낮은 지하해수를 넣고 액화산소를 충분히 공급하십시오."
+      warn: "조기 출하·분산을 하고, 사육 수온과 용존산소를 수시로 재요.",
+      crit: "수온이 낮은 지하해수를 넣고 액화산소를 충분히 공급해요."
     },
     "조피볼락(우럭)": {
-      warn: "가두리 그물을 교체·청소하고, 긴급 방류에 대비해 질병 검사를 받아 두십시오.",
-      crit: "저층 물을 퍼 올려 섞어 주거나 가두리를 가라앉히고, 차광막으로 스트레스를 줄이십시오."
+      warn: "가두리 그물을 교체·청소하고, 긴급 방류에 대비해 질병 검사를 받아 둬요.",
+      crit: "저층 물을 퍼 올려 섞어 주거나 가두리를 가라앉히고, 차광막으로 스트레스를 줄여요."
     },
     // 아래는 국립수산과학원 「자연재해 대비 양식장 관리요령」 표 5-6·5-7·5-8 요약
     "전복(참전복)": {
-      warn: "조기 출하하고, 먹이(해조류) 공급량을 줄이며, 차광막과 산소 공급 장치를 미리 점검하십시오.",
-      crit: "먹이 공급을 멈추고, 차광막을 치고, 액화산소를 넣으십시오. 가두리는 저층 물 섞기나 침하를 하십시오."
+      warn: "조기 출하하고, 먹이(해조류) 공급량을 줄이며, 차광막과 산소 공급 장치를 미리 점검해요.",
+      crit: "먹이 공급을 멈추고, 차광막을 치고, 액화산소를 넣어요. 가두리는 저층 물 섞기나 침하를 해요."
     },
     "멍게(우렁쉥이)": {
-      warn: "어장 수온을 자주 확인하고, 줄을 깊은 곳으로 내릴 준비를 하십시오.",
-      crit: "작업을 멈추고, 수하연(매단 줄)을 깊이 내려 차가운 물에 두십시오."
+      warn: "어장 수온을 자주 확인하고, 줄을 깊은 곳으로 내릴 준비를 해요.",
+      crit: "작업을 멈추고, 수하연(매단 줄)을 깊이 내려 차가운 물에 둬요."
     },
     "굴(참굴)": {
-      warn: "어장 수온을 자주 확인하고, 수하연을 내릴 준비를 하십시오.",
-      crit: "작업을 멈추고, 수온이 지나치게 오르면 수하연을 깊이 내리십시오."
+      warn: "어장 수온을 자주 확인하고, 수하연을 내릴 준비를 해요.",
+      crit: "작업을 멈추고, 수온이 지나치게 오르면 수하연을 깊이 내려요."
+    },
+    // 아래 갯벌(살포식) 패류 4종: 국립수산과학원 「자연재해 대비 양식장 관리요령」 3장 "바닥식
+    // 패류(바지락) 및 기타 양식장(굴·멍게) 관리 요령", 표 5-8 "바닥식(바지락 등)" 그대로 반영
+    // (종 전용 요령은 없지만 이 표가 바닥식 패류 전반에 적용된다고 명시돼 있음, 2026-09-28)
+    "바지락": {
+      warn: "조기에 걷어 서식 밀도를 낮추고, 썰물 때 어장에 바닷물이 고이지 않게 물길을 내 둬요.",
+      crit: "관할 시·군청(해양수산과)에 바로 신고하고, 폐사체는 2차 오염을 막기 위해 빠르게 걷어내요."
+    },
+    "새꼬막": {
+      warn: "조기에 걷어 서식 밀도를 낮추고, 썰물 때 어장에 바닷물이 고이지 않게 물길을 내 둬요.",
+      crit: "관할 시·군청(해양수산과)에 바로 신고하고, 폐사체는 2차 오염을 막기 위해 빠르게 걷어내요."
+    },
+    "피조개": {
+      warn: "조기에 걷어 서식 밀도를 낮추고, 썰물 때 어장에 바닷물이 고이지 않게 물길을 내 둬요.",
+      crit: "관할 시·군청(해양수산과)에 바로 신고하고, 폐사체는 2차 오염을 막기 위해 빠르게 걷어내요."
+    },
+    "꼬막(참꼬막)": {
+      warn: "조기에 걷어 서식 밀도를 낮추고, 썰물 때 어장에 바닷물이 고이지 않게 물길을 내 둬요.",
+      crit: "관할 시·군청(해양수산과)에 바로 신고하고, 폐사체는 2차 오염을 막기 위해 빠르게 걷어내요."
+    },
+    // 아래 수하식(밧줄에 매다는) 패류 2종: 같은 표 5-8 "수하식(굴, 멍게)" 요령(작업금지·수하연
+    // 침하·신고)을 그대로 적용 - 굴·멍게 항목과 문구를 맞춤
+    "홍합(진주담치)": {
+      warn: "어장 수온을 자주 확인하고, 수하연을 내릴 준비를 해요.",
+      crit: "작업을 멈추고 수하연을 깊이 내리며, 관할 시·군청에 바로 신고해요."
+    },
+    "미더덕": {
+      warn: "어장 수온을 자주 확인하고, 수하연을 내릴 준비를 해요.",
+      crit: "작업을 멈추고 수하연을 깊이 내리며, 관할 시·군청에 바로 신고해요."
     }
   };
+  // 패류는 사람이 먹이(사료)를 주지 않고 플랑크톤을 걸러 먹으므로, 공통 문구 중 "사료"·"물고기"를
+  // 언급하는 줄은 패류에는 안 맞아 보여주지 않는다 (renderActions에서 사용, 2026-09-28)
+  var SHELLFISH = { "전복(참전복)": 1, "멍게(우렁쉥이)": 1, "굴(참굴)": 1, "바지락": 1, "새꼬막": 1,
+                    "피조개": 1, "꼬막(참꼬막)": 1, "홍합(진주담치)": 1, "미더덕": 1 };
 
   // ---------- 저장 ----------
   function load(key, fallback) {
@@ -113,6 +146,22 @@
   })();
 
   function km(a, b) { return Math.hypot((a.lon - b.lon) * KM_LON, (a.lat - b.lat) * KM_LAT); }
+
+  // 육지를 눌렀을 때는 수온을 보여주지 않기 위한 판정 - 해안선(Natural Earth) 다각형 안에
+  // 점이 들어있는지 계산한다(레이캐스팅). data/coast.js가 있을 때만 동작 (2026-09-28)
+  function pointInRing(lat, lon, ring) {
+    var inside = false;
+    for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+      var yi = ring[i][0], xi = ring[i][1], yj = ring[j][0], xj = ring[j][1];
+      if (((yi > lat) !== (yj > lat)) && (lon < (xj - xi) * (lat - yi) / (yj - yi) + xi)) inside = !inside;
+    }
+    return inside;
+  }
+  function isOnLand(lat, lon) {
+    if (!window.COAST) return false;
+    for (var r = 0; r < window.COAST.length; r++) if (pointInRing(lat, lon, window.COAST[r])) return true;
+    return false;
+  }
 
   // 관측소의 (기준일 수온, 7일 예보, 실제) - 모드별
   function stationValues(s, dateKey) {
@@ -199,7 +248,7 @@
     })(),
     date: "latest",
     gps: false,
-    step: 1,            // 1=위치 고르기, 2=어종 고르기+결과 - 한 화면에 다 안 보여주고 순서대로 진행
+    screen: "welcome",   // welcome/location/confirm/species/loading/result - 화면마다 할 일 하나씩
     locationChosen: false,  // 사용자가 실제로 위치를 고른 적 있는지(처음 온 사람만 1단계부터 시작)
     viaUrlLink: false    // 이번 방문이 ?place=·?lat=&lon= 딥링크로 들어온 것인지 (탭 기본값 판단용 -
                          // localStorage에 남은 예전 기록과 구분해야 함, 아래 buildTabs 참고)
@@ -222,6 +271,35 @@
     if (!state.farm) state.farm = presetFarm(F.presets[0]);
   })();
 
+  // ---------- 화면 진행: 인사말 → 위치 → 위치확인 → (어종 물어보기) → 어종 → 불러오는 중 → 결과 ----------
+  // 한 화면에 위치·어종·결과를 다 몰아넣지 말고, 화면마다 할 일 하나만 두고 차례차례
+  // 넘어가게 함. setFarm()에서도 이 함수를 불러 위치를 고르면 자동으로 다음 화면(확인)으로
+  // 넘어가게 한다 - 매번 '다음' 버튼을 더 누르게 하지 않기 위해 (2026-09-28).
+  var SCREENS = ["welcome", "location", "location-confirm", "confirm", "species", "loading"];
+  var SCREEN_EL_ID = {
+    "welcome": "step-welcome",
+    "location": "step-location",
+    "location-confirm": "step-location-confirm",
+    "confirm": "step-confirm",
+    "species": "step-species",
+    "loading": "step-loading"
+  };
+  function goScreen(screen) {
+    state.screen = screen;
+    var controls = document.querySelector(".controls");
+    controls.hidden = screen === "result";
+    SCREENS.forEach(function (k) {
+      var el = document.getElementById(SCREEN_EL_ID[k]);
+      if (el) el.hidden = k !== screen;
+    });
+    render();
+    if (screen === "loading") {
+      // 실제로는 이미 불러온 자료를 즉시 계산할 뿐이지만, 뭘 하고 있는지 보여주기 위해
+      // 아주 잠깐(체감상) 멈췄다가 결과로 넘어간다.
+      setTimeout(function () { goScreen("result"); }, 700);
+    }
+  }
+
   function presetFarm(p) {
     var s = byCode[p.code];
     return { lat: s.lat, lon: s.lon, label: p.label + " (" + s.name + " 관측소)", code: s.code, preset: p.label };
@@ -230,6 +308,8 @@
     state.farm = f;
     state.locationChosen = true;  // 실제로 위치를 골랐으니 "선택한 위치: 없음" 표시는 이제 끝
     save("farm", JSON.stringify(f));
+    // 위치를 고르는 화면에 있었다면 자동으로 '이 위치가 맞나요?' 확인 화면으로 넘어간다
+    if (state.screen === "location") { goScreen("location-confirm"); return; }
     render();
   }
 
@@ -270,10 +350,14 @@
   var FR = (window.FARMS && window.FARMS.rows) || [];
   function norm(s) { return String(s || "").replace(/\s+/g, "").toLowerCase(); }
   var FR_IDX = FR.map(function (r) { return norm(r[0] + r[1] + r[2] + r[3] + r[4] + r[5]); });
-  // 어장정보 품종 글자 → 앱 기준표 품종 (기준표: data/external/species_conditions, 공식 출처 있는 10종)
+  // 어장정보 품종 글자 → 앱 기준표 품종 (기준표: data/external/species_conditions).
+  // '새꼬막'·'새고막'처럼 더 구체적인 이름은 일반 '꼬막'보다 앞에 둬야 한다 - 먼저 맞는 키를
+  // 찾으면 바로 반환하므로, '꼬막'이 앞에 있으면 '새꼬막'도 그냥 '꼬막'으로 잘못 잡힌다.
   var SPECIES_KEYS = [["넙치", "넙치"], ["광어", "넙치"], ["우럭", "조피볼락"], ["조피볼락", "조피볼락"], ["참돔", "참돔"],
                       ["감성돔", "감성돔"], ["돌돔", "돌돔"], ["강도다리", "강도다리"], ["숭어", "숭어"],
-                      ["전복", "전복"], ["우렁쉥이", "멍게"], ["멍게", "멍게"], ["굴", "굴"]];
+                      ["전복", "전복"], ["우렁쉥이", "멍게"], ["멍게", "멍게"], ["굴", "굴"],
+                      ["새꼬막", "새꼬막"], ["새고막", "새꼬막"], ["바지락", "바지락"], ["꼬막", "꼬막"],
+                      ["피조개", "피조개"], ["홍합", "홍합"], ["진주담치", "홍합"], ["미더덕", "미더덕"]];
   function speciesFromKind(text) {
     for (var k = 0; k < SPECIES_KEYS.length; k++) {
       if (String(text || "").indexOf(SPECIES_KEYS[k][0]) >= 0) {
@@ -315,7 +399,7 @@
     if (!input.value.trim()) { ul.hidden = true; return; }
     ul.hidden = false;
     if (!hits.length) {
-      ul.innerHTML = '<li class="empty">찾는 양식장이 없습니다. 마을 이름만 넣어 보거나(예: 불목), 지도에서 직접 누르십시오.</li>';
+      ul.innerHTML = '<li class="empty">찾는 양식장이 없어요. 마을 이름만 넣어 보거나(예: 불목), 지도에서 직접 눌러 보세요.</li>';
       return;
     }
     hits.forEach(function (i) {
@@ -324,8 +408,8 @@
       b.type = "button";
       var info = [r[3], r[4], r[5]].filter(Boolean).join(" · ");
       b.innerHTML = "<strong>" + r[0] + " " + r[1] + "</strong><small>" + info + (r[2] ? " · 면허 " + r[2] : "") + "</small>" +
-        (d > K.max_km ? '<small class="far-note">근처 수온 관측소가 없어 예보를 낼 수 없습니다</small>'
-                      : (d > K.warn_km ? '<small class="far-note">관측소가 ' + d.toFixed(0) + "km 떨어져 참고용입니다</small>" : ""));
+        (d > K.max_km ? '<small class="far-note">근처 수온 관측소가 없어 예보를 낼 수 없어요</small>'
+                      : (d > K.warn_km ? '<small class="far-note">관측소가 ' + d.toFixed(0) + "km 떨어져 있어 참고용이에요</small>" : ""));
       b.addEventListener("click", function () { chooseFarmRow(i); });
       li.appendChild(b);
       ul.appendChild(li);
@@ -405,19 +489,19 @@
     var msg = document.getElementById("move-msg");
     document.getElementById("copy-code").addEventListener("click", function () {
       var ta = document.getElementById("move-code");
-      var done = function () { msg.textContent = "코드를 복사했습니다. 새 휴대폰의 같은 칸에 붙여 넣으십시오."; };
-      var fallback = function () { ta.focus(); ta.select(); msg.textContent = "코드가 선택되었습니다. 길게 눌러 '복사'를 고르십시오."; };
+      var done = function () { msg.textContent = "코드를 복사했어요. 새 휴대폰의 같은 칸에 붙여 넣어 주세요."; };
+      var fallback = function () { ta.focus(); ta.select(); msg.textContent = "코드가 선택됐어요. 길게 눌러 '복사'를 골라 주세요."; };
       try { navigator.clipboard.writeText(ta.value).then(done, fallback); } catch (e) { fallback(); }
     });
     document.getElementById("import-code").addEventListener("click", function () {
       var got = decodeMy(document.getElementById("move-code").value);
-      if (!got) { msg.textContent = "코드를 읽지 못했습니다. HSW1: 로 시작하는 코드 전체를 붙여 넣으십시오."; return; }
+      if (!got) { msg.textContent = "코드를 읽지 못했어요. HSW1: 로 시작하는 코드 전체를 붙여 넣어 주세요."; return; }
       var added = 0;
       got.forEach(function (f) {
         if (!myFarms.some(function (m) { return samePlace(m, f) && m.name === f.name; })) { myFarms.push(f); added++; }
       });
       saveMy();
-      msg.textContent = "양식장 " + added + "곳을 가져왔습니다.";
+      msg.textContent = "양식장 " + added + "곳을 가져왔어요.";
       render();
     });
   }
@@ -432,7 +516,7 @@
       if (v && v.today !== null) cand.push({ s: s, v: v, d: km(farm, s) });
     });
     cand.sort(function (a, b) { return a.d - b.d; });
-    if (!cand.length) return { none: true, reason: "이 날짜의 관측 자료가 없습니다." };
+    if (!cand.length) return { none: true, reason: "이 날짜의 관측 자료가 없어요." };
     var nn = cand[0];
     if (nn.d > K.max_km) return { none: true, nn: nn };
     var nb = cand.slice(0, K.neighbors);
@@ -496,7 +580,14 @@
       // 지도가 hidden(display:none) 상태에서 만들어지면 Leaflet이 크기를 0으로 계산해
       // 왼쪽 위에 작게 찌그러진 채로만 그려진다 - 탭이 보이게 바뀔 때마다 다시 계산시킨다.
       // (지도는 buildMap()에서 이 함수보다 나중에 만들어지므로 아직 없을 수 있어 null 체크)
-      if (!onFarm && map) setTimeout(function () { map.invalidateSize(); }, 0);
+      // fitBounds도 같은 이유로 지도가 아직 숨어 있을 때(크기 0) 부르면 NaN 좌표 오류가 나서
+      // 여기서 크기를 다시 잰 다음, 처음 한 번만 네 지역이 다 보이도록 시야를 맞춘다.
+      if (!onFarm && map) {
+        setTimeout(function () {
+          map.invalidateSize();
+          if (!zoneFitDone && zoneBounds) { map.fitBounds(zoneBounds, { padding: [28, 28] }); zoneFitDone = true; }
+        }, 0);
+      }
     }
     tabFarm.addEventListener("click", function () { activate("farm"); });
     tabExplore.addEventListener("click", function () { activate("explore"); });
@@ -508,25 +599,58 @@
     activate((isFarmTabLocation(state.farm) || !state.viaUrlLink) ? "farm" : "explore");
   }
 
-  // ---------- 1단계(위치) → 2단계(어종+결과) ----------
-  // 위치·어종·결과를 한 화면에 다 몰아넣지 말고 하나씩 진행하라는 지적을 반영.
-  // 위치를 이미 골라 본 사용자(저장된 기록·URL 딥링크·내 양식장)는 2단계부터 시작해
-  // 매번 위치를 다시 고르게 하지 않는다(state.locationChosen, 위에서 계산).
-  function buildSteps() {
-    var stepLoc = document.getElementById("step-location");
-    var stepSp = document.getElementById("step-species");
-    function apply(n) {
-      stepLoc.hidden = n !== 1;
-      stepSp.hidden = n !== 2;
+  // ---------- 결과 화면 3분할(오늘 상태 / 7일 예보 / 할 일) ----------
+  // 상태카드·7일표·그래프·할일을 한 화면에 다 쌓아두면 토스처럼 "한 화면에 몇 개만
+  // 또렷하게" 보여주는 느낌이 안 난다는 지적을 반영해 화면(탭)으로 나눴다 (2026-09-28).
+  var resultTab = "today";
+  function buildResultTabs() {
+    var btns = {
+      today: document.getElementById("rtab-btn-today"),
+      week: document.getElementById("rtab-btn-week"),
+      todo: document.getElementById("rtab-btn-todo")
+    };
+    var panels = {
+      today: document.getElementById("rtab-today"),
+      week: document.getElementById("rtab-week"),
+      todo: document.getElementById("rtab-todo")
+    };
+    function activate(tab) {
+      resultTab = tab;
+      Object.keys(btns).forEach(function (k) {
+        var on = k === tab;
+        btns[k].setAttribute("aria-selected", on ? "true" : "false");
+        btns[k].tabIndex = on ? 0 : -1;
+        panels[k].hidden = !on;
+      });
+      // 그래프(SVG)는 컨테이너가 hidden(display:none)일 때 그리면 폭을 잘못 계산한다
+      // (지도와 같은 문제) - '7일 예보' 탭이 보이게 바뀔 때마다 render()를 한 번 더
+      // 불러 그 시점의 실제 크기로 다시 그린다. render()는 화면을 새로 계산해 채우기만
+      // 하고 데이터를 다시 받아오지 않아 비용이 적다.
+      if (tab === "week") setTimeout(function () { render(); }, 0);
     }
-    function go(n) { state.step = n; apply(n); render(); }
-    document.getElementById("step1-next").addEventListener("click", function () { go(2); });
-    document.getElementById("step2-back").addEventListener("click", function () { go(1); });
-    apply(state.step);  // 첫 화면 그리기는 아래 공통 render()가 처리
+    Object.keys(btns).forEach(function (k) {
+      btns[k].addEventListener("click", function () { activate(k); });
+    });
+    activate("today");
+  }
+
+  // ---------- 화면 전환 버튼 연결 (실제 화면 전환은 위 goScreen이 처리) ----------
+  function buildSteps() {
+    document.getElementById("welcome-next").addEventListener("click", function () { goScreen("location"); });
+    document.getElementById("loc-confirm-back").addEventListener("click", function () { goScreen("location"); });
+    document.getElementById("step1-next").addEventListener("click", function () { goScreen("confirm"); });
+    document.getElementById("confirm-yes").addEventListener("click", function () { goScreen("species"); });
+    document.getElementById("confirm-no").addEventListener("click", function () { goScreen("loading"); });
+    document.getElementById("step2-back").addEventListener("click", function () { goScreen("confirm"); });
+    document.getElementById("species-next").addEventListener("click", function () { goScreen("loading"); });
+    document.getElementById("result-restart").addEventListener("click", function () { goScreen("location"); });
+    goScreen(state.screen);  // 첫 화면 그리기
   }
 
   // ---------- 조회 조건 ----------
   function buildControls() {
+    // 지역 버튼 목록: 지도가 안 뜰 때(!window.L)만 보여주는 대체 수단 (buildMap 참고).
+    // 지도가 뜨면 이 목록은 계속 숨겨져 있고, 같은 지역들이 지도 위 색칠된 영역으로 나온다.
     var box = document.getElementById("preset-buttons");
     F.presets.forEach(function (p) {
       var b = document.createElement("button");
@@ -537,20 +661,15 @@
       box.appendChild(b);
     });
     if (!OPTIONS.noGps) {
-      var g = document.createElement("button");
-      g.type = "button";
-      g.className = "gps";
-      g.textContent = "내 위치";
-      g.addEventListener("click", locate);
-      box.appendChild(g);
+      document.getElementById("gps-btn").addEventListener("click", locate);
     } else {
-      box.classList.remove("five");
+      document.getElementById("gps-field").hidden = true;
     }
 
     var ss = document.getElementById("station-select");
     var first = document.createElement("option");
     first.value = "";
-    first.textContent = "관측소를 고르십시오";
+    first.textContent = "관측소를 골라 주세요";
     ss.appendChild(first);
     var groups = {};
     ST.slice().sort(function (a, b) { return a.name.localeCompare(b.name, "ko"); }).forEach(function (s) {
@@ -601,21 +720,23 @@
 
   function locate() {
     var out = document.getElementById("place-now");
-    if (!navigator.geolocation) { out.textContent = "이 기기에서는 위치 찾기를 쓸 수 없습니다. 지도나 관측소 목록에서 고르십시오."; return; }
-    out.textContent = "현재 위치를 찾는 중입니다…";
+    if (!navigator.geolocation) { out.textContent = "이 기기에서는 위치 찾기를 쓸 수 없어요. 지도나 관측소 목록에서 골라 주세요."; return; }
+    out.textContent = "현재 위치를 찾는 중이에요…";
     navigator.geolocation.getCurrentPosition(function (p) {
       state.gps = true;
       setFarm({ lat: p.coords.latitude, lon: p.coords.longitude, label: "내 위치" });
     }, function () {
-      out.textContent = "위치를 찾지 못했습니다. 위치 권한을 허용하거나, 지도나 관측소 목록에서 고르십시오.";
+      out.textContent = "위치를 찾지 못했어요. 위치 권한을 허용하거나, 지도나 관측소 목록에서 골라 주세요.";
     }, { enableHighAccuracy: true, timeout: 15000 });
   }
 
   // ---------- 지도 ----------
-  var map = null, farmLayer = null, lineLayer = null;
+  var map = null, farmLayer = null, lineLayer = null, presetZoneLayer = null;
+  var zoneBounds = null, zoneFitDone = false;
   function buildMap() {
     if (!window.L) {
       document.getElementById("map-wrap").hidden = true;  // 인터넷이 안 되면 지도 없이 사용
+      document.getElementById("preset-list-field").hidden = false;  // 대신 목록 버튼으로 고르게 함
       return;
     }
     map = L.map("map", { zoomControl: true, attributionControl: true }).setView([34.62, 127.6], 9);
@@ -631,7 +752,7 @@
         maxZoom: 16, minZoom: 7, attribution: "© OpenStreetMap"
       }).addTo(map);
     } else {
-      map.attributionControl.addAttribution("해안선: Natural Earth");
+      map.attributionControl.addAttribution("해안선: Natural Earth · 행정구역: 통계청(southkorea-maps)");
     }
     ST.forEach(function (s) {
       L.circleMarker([s.lat, s.lon], { radius: 5, color: "#ffffff", weight: 1.5, fillColor: "#1f5fa8", fillOpacity: 1 })
@@ -639,9 +760,48 @@
         .on("click", function () { state.gps = false; setFarm({ lat: s.lat, lon: s.lon, label: s.name + " 관측소", code: s.code }); })
         .addTo(map);
     });
+    // 지역 빠른 선택 - 동그라미는 실제 지역 모양과 안 맞고 너무 작다는 지적 반영(2026-09-28).
+    // 행정구역 경계 데이터는 없어서, 대신 이 지도의 모든 지점을 "4개 대표 관측소 중 어디에 더
+    // 가까운가"로 나눠 칠했다 - 이게 정확히 이 앱이 지도를 눌렀을 때 위치를 고르는 것과 같은
+    // 기준(가장 가까운 대표 지점)이라 원보다 실제 동작을 더 정확히 보여준다. 캔버스에 픽셀 단위로
+    // 계산해 이미지 한 장으로 얹으므로(보로노이 다이어그램과 같은 결과) 동그라미보다 훨씬 넓고
+    // 자연스러운 경계 모양이 나온다.
+    // 근사 도형(원, 최근접 구역 칠하기)은 실제 지역 모양과 다르다는 지적 반영 - 통계청이 만들고
+    // southkorea/southkorea-maps(공공누리 제1유형)가 정리해 둔 실제 시군구 경계로 바꿈
+    // (data/regions.js, 2026-09-28). 나라 국경선처럼 실제 행정구역 모양 그대로 나온다.
+    var ZONE_COLORS = ["#3182f6", "#15ad7e", "#e08a2c", "#8f4bc9"];
+    presetZoneLayer = L.layerGroup().addTo(map);
+    var zoneCoords = [];
+    (window.REGIONS || []).forEach(function (r, i) {
+      var preset = null;
+      for (var k = 0; k < F.presets.length; k++) if (F.presets[k].label === r.label) { preset = F.presets[k]; break; }
+      if (!preset) return;
+      var s = byCode[preset.code];
+      if (s) zoneCoords.push([s.lat, s.lon]);
+      var color = ZONE_COLORS[i % ZONE_COLORS.length];
+      var onPick = function (e) {
+        L.DomEvent.stopPropagation(e);  // 안 막으면 지도 자체 클릭(임의 지점 선택)까지 겹쳐 발생해 방금 고른 지역을 덮어씀
+        state.gps = false;
+        setFarm(presetFarm(preset));
+      };
+      L.geoJSON(r.geometry, { style: { color: color, weight: 2, fillColor: color, fillOpacity: 0.3 } })
+        .on("click", onPick).addTo(presetZoneLayer);
+      if (s) {
+        L.marker([s.lat, s.lon], {
+          icon: L.divIcon({ className: "zone-label", html: '<span style="background:' + color + '">' + r.label + "</span>", iconSize: [44, 22], iconAnchor: [22, 11] })
+        }).on("click", onPick).addTo(presetZoneLayer);
+      }
+    });
+    zoneBounds = zoneCoords.length ? L.latLngBounds(zoneCoords) : null;
     lineLayer = L.layerGroup().addTo(map);
     farmLayer = L.layerGroup().addTo(map);
     map.on("click", function (e) {
+      if (isOnLand(e.latlng.lat, e.latlng.lng)) {
+        L.popup({ closeButton: false, autoClose: true })
+          .setLatLng(e.latlng).setContent("육지예요. 바다 위치를 눌러 주세요.").openOn(map);
+        setTimeout(function () { map.closePopup(); }, 1800);
+        return;
+      }
       state.gps = false;
       setFarm({ lat: e.latlng.lat, lon: e.latlng.lng, label: "지도에서 고른 위치" });
     });
@@ -670,9 +830,10 @@
     var est = estimate();
 
     Array.prototype.forEach.call(document.querySelectorAll("#preset-buttons button"), function (b) {
-      var on = b.classList.contains("gps") ? state.gps : state.farm.preset === b.dataset.preset;
-      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.setAttribute("aria-pressed", state.farm.preset === b.dataset.preset ? "true" : "false");
     });
+    var gpsBtn = document.getElementById("gps-btn");
+    if (gpsBtn) gpsBtn.setAttribute("aria-pressed", state.gps ? "true" : "false");
     var ss = document.getElementById("station-select");
     ss.value = state.farm.code && !state.farm.preset ? state.farm.code : "";
     document.body.classList.toggle("showing-past", !est.none && est.past);
@@ -704,8 +865,8 @@
     var note = document.getElementById("farm-note");
     if (fmInfo && speciesFromKind((fmInfo.kind || "") + " " + (fmInfo.knd || "")) < 0) {
       note.hidden = false;
-      note.textContent = "이 양식장 품종(" + (fmInfo.kind || fmInfo.knd || "등록 정보 없음") + ")은 앱에 기준 수온이 없습니다. " +
-        "아래 '기르는 어종'에서 가장 가까운 어종을 고르십시오. 지금은 " + sp.name + " 기준으로 보여 줍니다.";
+      note.textContent = "이 양식장 품종(" + (fmInfo.kind || fmInfo.knd || "등록 정보 없음") + ")은 앱에 기준 수온이 없어요. " +
+        "아래 '기르는 어종'에서 가장 가까운 어종을 골라 주세요. 지금은 " + sp.name + " 기준으로 보여 줘요.";
     } else {
       note.hidden = true;
     }
@@ -713,8 +874,8 @@
     drawMap(est);
     document.getElementById("step-place-echo").innerHTML = "선택한 위치: <strong>" + state.farm.label + "</strong>";
 
-    // 2단계(어종 고르기)로 넘어가기 전에는 예보 결과를 보여주지 않는다 - 위치만 먼저 확정하게 함
-    if (state.step < 2) {
+    // '결과' 화면에 이르기 전에는 예보 결과를 보여주지 않는다 - 화면마다 할 일 하나씩만
+    if (state.screen !== "result") {
       document.getElementById("unavailable").hidden = true;
       document.getElementById("result").hidden = true;
       return;
@@ -724,11 +885,15 @@
     document.getElementById("result").hidden = est.none;
     if (est.none) {
       document.getElementById("unavailable-msg").textContent = est.nn
-        ? "가장 가까운 수온 관측소(" + est.nn.s.name + ")가 " + est.nn.d.toFixed(0) + "km 떨어져 있어 이 위치의 예보를 믿을 수 없습니다. " +
-          "관측소에서 " + K.max_km + "km 안쪽의 양식장 위치를 고르십시오."
+        ? "가장 가까운 수온 관측소(" + est.nn.s.name + ")가 " + est.nn.d.toFixed(0) + "km 떨어져 있어 이 위치의 예보를 믿을 수 없어요. " +
+          "관측소에서 " + K.max_km + "km 안쪽의 양식장 위치를 골라 주세요."
         : est.reason;
       return;
     }
+
+    // 김은 '위험 상한'이 아니라 '채묘 적정 온도' 기준이라 다른 어종과 계산 방식이 다름 -
+    // 정상/주의/위험 분류를 쓰지 않고 별도의 중립 안내로 대체 (2026-09-28)
+    if (sp.name === "김") { renderSeaweed(est, sp); return; }
 
     var lvDays = est.days.map(function (d) { return levelForecast(d.pred, sp); });
     var lvToday = levelObserved(est.today, sp);
@@ -742,25 +907,27 @@
       sp.name + " 기준 · " + (est.past ? mdw(est.issue) + " 예보" : "앞으로 7일");
     var msg;
     if (lvToday === "crit") {
-      msg = (est.past ? "이날 수온이" : "현재 수온이") + " 위험 수온(" + sp.danger + "℃) 이상입니다. 바로 대비하십시오.";
+      msg = (est.past ? "이날 수온이" : "현재 수온이") + " 위험 수온(" + sp.danger + "℃) 이상이에요. 바로 대비해요.";
     } else if (firstCrit >= 0) {
       msg = mdw(est.days[firstCrit].date) + " 전후로 위험 수온(" + sp.danger +
-            "℃)에 가까워질 것으로 예상됩니다. 하루 이틀 빠를 수 있으니 미리 대비하십시오.";
+            "℃)에 가까워질 것으로 예상돼요. 하루 이틀 빠를 수 있으니 미리 대비해요.";
     } else if (overall === "warn") {
-      msg = "적정 수온(" + sp.opt_max + "℃)보다 높은 날이 있습니다. 7일 안에 위험 수온 도달은 예상되지 않습니다.";
+      msg = "적정 수온(" + sp.opt_max + "℃)보다 높은 날이 있어요. 7일 안에 위험 수온 도달은 예상되지 않아요.";
     } else {
-      msg = "앞으로 7일 동안 적정 수온 범위에서 유지될 것으로 예상됩니다.";
+      msg = "앞으로 7일 동안 적정 수온 범위에서 유지될 것으로 예상돼요.";
     }
     document.getElementById("status-msg").textContent = msg;
     var warn = document.getElementById("status-warn");
     warn.hidden = est.nn.d <= K.warn_km;
-    warn.textContent = "가장 가까운 관측소가 " + est.nn.d.toFixed(1) + "km 떨어져 있어 이 위치의 정확도가 낮습니다. 참고용으로 보십시오.";
+    warn.textContent = "가장 가까운 관측소가 " + est.nn.d.toFixed(1) + "km 떨어져 있어 이 위치의 정확도가 낮아요. 참고용으로만 봐 주세요.";
 
     document.getElementById("fact-now-label").textContent = est.past ? "기준일 수온" : "현재 수온";
     document.getElementById("fact-now").innerHTML =
       t1(est.today) + "<small>" + md(est.issue) + " 하루 평균 · 이 위치 추정</small>";
+    document.getElementById("fact-danger-label").textContent = "위험 수온";  // 김 화면에서 바뀐 라벨 원복
     document.getElementById("fact-danger").innerHTML =
       sp.danger.toFixed(1) + "℃<small>" + (sp.danger - F.alert_margin).toFixed(2).replace(/0$/, "") + "℃부터 위험 표시</small>";
+    document.getElementById("fact-opt-box").hidden = false;
     document.getElementById("fact-opt").innerHTML =
       sp.opt_min + "~" + sp.opt_max + "℃<small>고수온 특보 기준 " + F.official_alert_temp + "℃</small>";
     document.getElementById("fact-src").textContent = sp.src ? "기준 수온 출처: " + sp.src : "";
@@ -770,6 +937,55 @@
     renderActions(overall, sp);
     renderSources(est);
     renderAccuracy(est);
+  }
+
+  // 김: 여름 고수온 위험이 아니라 가을 채묘(종자 붙이기) 적정 온도와 지금 수온을 비교해서만
+  // 보여준다. 정상/주의/위험 색·차트 위험선·할 일 문구는 다른 어종 것을 그대로 쓰면 틀린 말이
+  // 되므로 쓰지 않는다 (2026-09-28).
+  function renderSeaweed(v, sp) {
+    document.getElementById("status").className = "status none";
+    document.getElementById("status-word").textContent = "채묘 시기 참고";
+    document.getElementById("status-scope").textContent = "김 기준 · 여름 고수온 위험과는 다른 기준";
+    var diff = v.today - sp.opt_max;
+    var msg;
+    if (Math.abs(diff) < 0.3) {
+      msg = "지금 이 위치 수온(" + t1(v.today) + ")이 김 채묘 적정 기준(" + sp.opt_max + "℃)과 거의 같아요.";
+    } else if (diff > 0) {
+      msg = "지금 이 위치 수온(" + t1(v.today) + ")이 김 채묘 적정 기준(" + sp.opt_max + "℃)보다 " +
+            diff.toFixed(1) + "℃ 높아요. 아직 물이 덜 식어서 채묘(종자 붙이기)를 시작하기엔 일러요.";
+    } else {
+      msg = "지금 이 위치 수온(" + t1(v.today) + ")이 김 채묘 적정 기준(" + sp.opt_max + "℃)보다 " +
+            (-diff).toFixed(1) + "℃ 낮아요.";
+    }
+    document.getElementById("status-msg").textContent = msg;
+    var warnEl = document.getElementById("status-warn");
+    warnEl.hidden = v.nn.d <= K.warn_km;
+    warnEl.textContent = "가장 가까운 관측소가 " + v.nn.d.toFixed(1) + "km 떨어져 있어 이 위치의 정확도가 낮아요. 참고용으로만 봐 주세요.";
+
+    document.getElementById("fact-now-label").textContent = v.past ? "기준일 수온" : "현재 수온";
+    document.getElementById("fact-now").innerHTML =
+      t1(v.today) + "<small>" + md(v.issue) + " 하루 평균 · 이 위치 추정</small>";
+    document.getElementById("fact-danger-label").textContent = "채묘 적정 기준";
+    document.getElementById("fact-danger").innerHTML = sp.opt_max + "℃<small>이 온도로 식으면 채묘 시작</small>";
+    document.getElementById("fact-opt-box").hidden = true;
+    document.getElementById("fact-src").textContent = sp.src ? "기준 출처: " + sp.src : "";
+
+    // 7일 온도 자체는 참고가 되므로 표는 그대로 보여주되, 위험/주의 색 표시는 다 빼서(null) 태그
+    // 칸이 "-"로만 나오게 한다 - 이 숫자로 위험을 판단하는 게 아니라서 색을 칠하면 오해를 줌
+    renderTable(v, v.days.map(function () { return null; }), -1);
+    document.getElementById("legend").innerHTML = "";
+    document.getElementById("chart").innerHTML =
+      '<p class="hint">김은 채묘 시기 비교로만 안내돼요. 위 "오늘 상태" 값을 참고해 주세요.</p>';
+    renderSources(v);
+    renderAccuracy(v);
+
+    var ol = document.getElementById("actions");
+    ol.innerHTML = "";
+    var li = document.createElement("li");
+    li.textContent = "김은 가을~봄에 기르는 해조류라 여름철 폐사 대응요령은 따로 없어요. " +
+      "위 '오늘 상태'의 채묘 시기 비교만 참고해 주세요.";
+    ol.appendChild(li);
+    document.getElementById("action-note").textContent = "김 · 참고 정보";
   }
 
   function renderTable(v, lvDays, firstCrit) {
@@ -802,7 +1018,9 @@
       li.innerHTML = '<span class="sp">' + sp.name.replace(/\(.*\)/, "") + ":</span> " + extra;
       ol.appendChild(li);
     }
+    var isShellfish = !!SHELLFISH[sp.name];
     ACTIONS[level].forEach(function (t) {
+      if (isShellfish && /사료|물고기/.test(t)) return;  // 패류엔 안 맞는 문구는 건너뜀
       var li = document.createElement("li");
       li.textContent = t;
       ol.appendChild(li);
@@ -823,8 +1041,8 @@
       tb.appendChild(tr);
     });
     document.getElementById("nb-note").textContent =
-      "주변 관측소 " + est.nb.length + "곳의 예보를, 거리와 관측소끼리 수온이 얼마나 비슷하게 움직이는지에 따라 섞었습니다(크리깅). " +
-      "양식장 위치를 관측소 값으로 추정하면서 생기는 오차는 약 ±" + est.sd.toFixed(1) + "℃이며, 표의 예상 범위에 포함되어 있습니다.";
+      "주변 관측소 " + est.nb.length + "곳의 예보를, 거리와 관측소끼리 수온이 얼마나 비슷하게 움직이는지에 따라 섞었어요(크리깅). " +
+      "양식장 위치를 관측소 값으로 추정하면서 생기는 오차는 약 ±" + est.sd.toFixed(1) + "℃이고, 표의 예상 범위에 들어 있어요.";
   }
 
   // ---------- 차트 (관측 14일 + 예보 7일) ----------
@@ -855,7 +1073,7 @@
       if (p.pred !== null) { vals.push(p.pred - p.range, p.pred + p.range); }
       if (p.actual !== null) vals.push(p.actual);
     });
-    if (!vals.length) { box.textContent = "표시할 수온 자료가 없습니다."; return; }
+    if (!vals.length) { box.textContent = "표시할 수온 자료가 없어요."; return; }
     var lo = Math.min.apply(null, vals), hi = Math.max.apply(null, vals);
     var showDanger = sp.danger - hi <= 4, showOpt = sp.opt_max >= lo - 1 && sp.opt_max - hi <= 4;
     if (showDanger) hi = Math.max(hi, sp.danger);
@@ -923,7 +1141,7 @@
     if (showDanger) items.push('<span><i class="crit"></i>위험 수온</span>');
     if (showOpt) items.push('<span><i class="warn"></i>적정 수온 상한</span>');
     lg.innerHTML = items.join("");
-    if (!showDanger) lg.insertAdjacentHTML("beforeend", "<span>위험 수온 " + sp.danger + "℃는 그래프보다 훨씬 위에 있습니다</span>");
+    if (!showDanger) lg.insertAdjacentHTML("beforeend", "<span>위험 수온 " + sp.danger + "℃는 그래프보다 훨씬 위에 있어요</span>");
 
     var tip = document.createElement("div");
     tip.className = "tooltip"; tip.hidden = true; box.appendChild(tip);
@@ -968,17 +1186,19 @@
       return "<tr><th scope=\"row\">" + r[0] + "</th><td>" + r[1] + " <small>" + r[2] + "</small></td></tr>";
     }).join("");
     document.getElementById("acc-note").textContent =
-      "위 네 줄은 대표 관측소 4곳, 아래 두 줄은 이 위치에 쓴 관측소 기준입니다. " + V["기간"] +
-      " 실제 수온으로 확인했으며, 이 기간은 예보 모델을 만들 때 쓰지 않았습니다. 관측소에서 멀어질수록 추정 오차가 커집니다.";
+      "위 네 줄은 대표 관측소 4곳, 아래 두 줄은 이 위치에 쓴 관측소 기준이에요. " + V["기간"] +
+      " 실제 수온으로 확인했고, 이 기간은 예보 모델을 만들 때 쓰지 않았어요. 관측소에서 멀어질수록 추정 오차가 커져요.";
   }
 
   function renderMeta() {
     document.getElementById("generated").textContent = "예보 생성: " + F.generated_at + " · 관측소 " + ST.length + "곳";
+    // 결과(예보 수치)에 관한 안내라 결과 화면에만 둔다 - 인사말·위치 고르기 등 다른 화면에서는
+    // 아직 상관없는 내용이라 매번 보이면 그 화면에서 할 일이 뭔지 헷갈린다.
     if (F.notes && F.notes.length) {
       var n = document.createElement("p");
       n.className = "notice";
-      n.textContent = "최신 관측 자료를 받지 못해 이전 자료로 만든 예보입니다. 기준일을 확인하십시오.";
-      document.querySelector(".controls").appendChild(n);
+      n.textContent = "최신 관측 자료를 받지 못해 이전 자료로 만든 예보예요. 기준일을 확인해 주세요.";
+      document.getElementById("result").insertBefore(n, document.getElementById("result-restart").nextSibling);
     }
   }
 
@@ -990,13 +1210,16 @@
     if (s0 >= 0) state.species = s0;
     state.locationChosen = true;
   }
-  // 매번 1단계(위치 고르기)부터 시작 - 이전 기록이 있다고 2단계로 건너뛰면
+  // 매번 인사말 화면부터 시작 - 이전 기록이 있다고 중간 화면으로 건너뛰면
   // 뭘 보고 있는지 헷갈린다는 지적. state.locationChosen은 "선택한 위치" 표시 여부에만 쓴다.
-  state.step = 1;
+  // 단, ?place=·?lat=&lon= 링크로 바로 들어온 경우(state.viaUrlLink)는 공유받은 결과를
+  // 바로 보려는 것이므로 인사말·위치·어종 화면을 거치지 않고 결과로 바로 간다.
+  state.screen = state.viaUrlLink ? "result" : "welcome";
 
   buildControls();
   buildMyFarmControls();
   buildTabs();
+  buildResultTabs();
   buildSteps();
   buildMap();
   renderMeta();
