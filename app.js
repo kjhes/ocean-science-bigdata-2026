@@ -205,10 +205,10 @@
                          // localStorage에 남은 예전 기록과 구분해야 함, 아래 buildTabs 참고)
   };
   (function initFarm() {
-    try {
-      var f = JSON.parse(load("farm", "null"));
-      if (f && isFinite(f.lat) && isFinite(f.lon)) { state.farm = f; state.locationChosen = true; }
-    } catch (e) { /* 무시 */ }
+    // 검색·지도클릭 등으로 "마지막으로 본 위치"를 저장은 해 두지만(setFarm 참고),
+    // 여기서 그걸 자동으로 복원하지는 않는다 - '내 양식장으로 저장'을 누른 적 없는데도
+    // 다음 방문에 아무 검색 결과가 미리 채워져 나오면 사용자가 혼란스럽다는 지적 반영
+    // (2026-09-28). 진짜 저장된 "내 양식장"(myFarms)만 아래에서 복원한다.
     var q;
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
     if (q) {
@@ -982,8 +982,8 @@
     }
   }
 
-  // 처음 여는 기기라도 저장된 내 양식장이 있으면 그걸 먼저 보여줌
-  if (load("farm", null) === null && myFarms.length) {
+  // 저장된 내 양식장이 있으면 그걸 먼저 보여줌 (그 외에는 초기 화면 - 위 initFarm 참고)
+  if (!state.locationChosen && myFarms.length) {
     var f0 = myFarms[0];
     state.farm = { lat: f0.lat, lon: f0.lon, label: f0.name, farm: f0.farm || null, mine: true };
     var s0 = speciesIndexByName(f0.species);
