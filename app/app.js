@@ -200,7 +200,9 @@
     date: "latest",
     gps: false,
     step: 1,            // 1=위치 고르기, 2=어종 고르기+결과 - 한 화면에 다 안 보여주고 순서대로 진행
-    locationChosen: false  // 사용자가 실제로 위치를 고른 적 있는지(처음 온 사람만 1단계부터 시작)
+    locationChosen: false,  // 사용자가 실제로 위치를 고른 적 있는지(처음 온 사람만 1단계부터 시작)
+    viaUrlLink: false    // 이번 방문이 ?place=·?lat=&lon= 딥링크로 들어온 것인지 (탭 기본값 판단용 -
+                         // localStorage에 남은 예전 기록과 구분해야 함, 아래 buildTabs 참고)
   };
   (function initFarm() {
     try {
@@ -211,9 +213,9 @@
     try { q = new URLSearchParams(location.search); } catch (e) { q = null; }
     if (q) {
       var lat = parseFloat(q.get("lat")), lon = parseFloat(q.get("lon"));
-      if (isFinite(lat) && isFinite(lon)) { state.farm = { lat: lat, lon: lon, label: "주소로 지정한 위치" }; state.locationChosen = true; }
+      if (isFinite(lat) && isFinite(lon)) { state.farm = { lat: lat, lon: lon, label: "주소로 지정한 위치" }; state.locationChosen = true; state.viaUrlLink = true; }
       var place = q.get("place");
-      F.presets.forEach(function (p) { if (p.label === place) { state.farm = presetFarm(p); state.locationChosen = true; } });
+      F.presets.forEach(function (p) { if (p.label === place) { state.farm = presetFarm(p); state.locationChosen = true; state.viaUrlLink = true; } });
       if (q.get("species")) F.species.forEach(function (s, i) { if (s.name.indexOf(q.get("species")) === 0) state.species = i; });
       if (q.get("date")) state.date = q.get("date");
     }
@@ -491,11 +493,19 @@
       tabExplore.tabIndex = onFarm ? -1 : 0;
       panelFarm.hidden = !onFarm;
       panelExplore.hidden = onFarm;
+      // 지도가 hidden(display:none) 상태에서 만들어지면 Leaflet이 크기를 0으로 계산해
+      // 왼쪽 위에 작게 찌그러진 채로만 그려진다 - 탭이 보이게 바뀔 때마다 다시 계산시킨다.
+      // (지도는 buildMap()에서 이 함수보다 나중에 만들어지므로 아직 없을 수 있어 null 체크)
+      if (!onFarm && map) setTimeout(function () { map.invalidateSize(); }, 0);
     }
     tabFarm.addEventListener("click", function () { activate("farm"); });
     tabExplore.addEventListener("click", function () { activate("explore"); });
-    // 시작할 때는 현재 위치가 등록된 양식장(또는 저장해 둔 내 양식장)인지에 따라 탭을 고른다
-    activate(isFarmTabLocation(state.farm) ? "farm" : "explore");
+    // 시작할 때는 등록된 양식장(또는 저장해 둔 내 양식장)이면 '양식장' 탭.
+    // 그 외에는 전부 기본값이 '양식장' 탭이다 — 이번 방문이 ?place=·?lat=&lon= 딥링크로
+    // 들어온 경우(state.viaUrlLink)만 예외로 '전국 수온 예측'을 유지한다.
+    // (locationChosen을 기준으로 삼으면 예전에 프리셋 버튼을 한 번이라도 눌러 localStorage에
+    //  남은 기록 때문에 다음 방문에도 계속 '전국 수온 예측'으로 가는 버그가 있었음 - 2026-09-28)
+    activate((isFarmTabLocation(state.farm) || !state.viaUrlLink) ? "farm" : "explore");
   }
 
   // ---------- 1단계(위치) → 2단계(어종+결과) ----------
