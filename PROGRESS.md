@@ -612,3 +612,21 @@ Natural Earth)로 클릭 좌표가 육지 다각형 안인지 레이캐스팅으
 7. 한계: GitHub Pages가 `kjhes.github.io/이-저장소/` 하위 경로라 Digital Asset Links(도메인 소유
    인증)를 걸 수 없음 → 앱 실행 시 상단에 얇은 브라우저 주소창이 보임(Custom Tab 폴백). 완전히
    없애려면 `kjhes.github.io`라는 이름의 별도 저장소가 있어야 함 - 하지 않기로 함
+8. `app/`가 바뀔 때마다 수동으로 `gh-pages`에 다시 올려야 하는 게 깜빡할 위험이 있다는 지적으로
+   `.github/workflows/deploy-pages.yml` 추가 - main의 `app/**` 변경이 push되면 자동으로
+   gh-pages에 동기화됨(`peaceiris/actions-gh-pages`, `keep_files: true`로 APK는 안 지움).
+   저장소 Actions 기본 권한이 "read"라 그대로면 조용히 실패했을 것 - API로 "write"로 바꿔줌.
+   TWA 앱은 내부에서 매번 그 웹 주소를 새로 불러오는 구조라, 이후로는 `app/`만 고치면 이미 설치된
+   폰에도 다시 설치할 필요 없이 반영됨(서비스워커 없음 = 브라우저 캐시로 막히지도 않음)
+
+**버그**: 처음 만든 APK를 설치해서 열면 404가 떴음. APK 리소스(`resources.arsc`)를 직접 까서 보니
+앱 안에 박힌 시작 주소가 `.../ocean-science-bigdata-2026/ocean-science-bigdata-2026/index.html`로
+경로가 중복돼 있었음 - CloudAPK 요청의 `host`(이미 `/ocean-science-bigdata-2026` 포함)와
+`startUrl`(마찬가지로 그 경로 포함)에 같은 경로를 두 번 넣은 게 원인. `host`를 origin만
+(`https://kjhes.github.io`)으로 고치고 재생성. 이번엔 같은 서명 키를 재사용해야 안드로이드가
+"새 앱"이 아니라 "업데이트"로 인식하므로, `signingMode: "mine"`에 기존 keystore를 base64로 실어
+보냄 - 이때 pwabuilder-google-play 소스 코드(`routes/project.ts`)를 직접 봐야 했던 게
+`signing.file`이 순수 base64가 아니라 `data:application/octet-stream;base64,...` 형식의 데이터
+URI여야 한다는 요구사항(문서에 없고 코드에만 있었음). 고친 뒤 리소스에서 주소가 정확히
+`https://kjhes.github.io/ocean-science-bigdata-2026/index.html`로 나오는지, keystore가 기존과
+바이트 단위로 같은지 확인하고 GitHub Pages·Release 양쪽의 APK를 교체함
