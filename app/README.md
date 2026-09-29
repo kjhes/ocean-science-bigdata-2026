@@ -17,8 +17,10 @@
 ## 앱으로 설치하기 (안드로이드, 2026-09-29)
 
 - 웹앱을 [GitHub Pages](https://kjhes.github.io/ocean-science-bigdata-2026/)로 올려 두고, 이를 TWA(Trusted
-  Web Activity) 방식으로 감싼 안드로이드 APK를 [Releases](https://github.com/kjhes/ocean-science-bigdata-2026/releases/tag/v1.0-android)에 배포함
-- 설치: 위 링크에서 `gosuonyebo.apk` 다운로드 → 열어서 설치("출처를 알 수 없는 앱" 허용 필요) → 홈 화면 아이콘 실행
+  Web Activity) 방식으로 감싼 안드로이드 APK를 배포함
+- 설치: **https://kjhes.github.io/ocean-science-bigdata-2026/gosuonyebo.apk** 에서 다운로드
+  (또는 [GitHub Releases](https://github.com/kjhes/ocean-science-bigdata-2026/releases/tag/v1.0-android)) →
+  열어서 설치("출처를 알 수 없는 앱" 허용 필요) → 홈 화면 아이콘 실행. QR코드: `dist/android/install_qr.png`
 - 정식 스토어(구글 플레이 등)엔 올리지 않음 — 신규 개발자 계정은 공개 전 14일 강제 테스트 기간이 있어
   대회 일정과 안 맞음. 서명 키(`dist/android/`, git 미포함)는 나중에 스토어에 올릴 때 필요하니 보관해 둘 것
 
