@@ -38,3 +38,4 @@ docs/reference/nifs_manuals/
 # 국립수산과학원 양식기술 매뉴얼 원본 PDF (합계 약 700MB, 전복 매뉴얼은 GitHub 파일 한도 초과)
 # 받는 곳: https://www.nifs.go.kr/cmmn/file/farm/farm_번호.pdf  (번호·쪽은 docs/어종별_기준수온_조사.md 참고)
 docs/reference/nifs_manuals/
+dist/
