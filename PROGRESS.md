@@ -588,3 +588,27 @@ getVilageFcst) 푸시 - 관측값이 아니라 **예보값**(TMP/WSD/PCP)을 실
 Natural Earth)로 클릭 좌표가 육지 다각형 안인지 레이캐스팅으로 판정(`isOnLand`), 육지면 위치를
 바꾸지 않고 "육지예요. 바다 위치를 눌러 주세요" 팝업만 잠깐 보여줌. 지역(완도 등) 폴리곤·라벨을
 누르는 경우는 클릭 좌표가 아니라 항상 정해진 대표 관측소로 가므로 이 판정과 무관.
+
+## 2026-09-29: 웹앱을 안드로이드 APK로 배포 (스토어 아닌 직접 배포)
+
+로컬에 Android Studio/SDK/Node가 전혀 없어(확인함: node 없음, Android SDK 없음, JDK만 있음) 오늘 안에
+새로 설치하는 위험을 피하려고 클라우드 빌드로 진행.
+
+1. `app/`를 GitHub Pages로 배포 (`gh-pages` 브랜치 = `git subtree split --prefix=app`로 만듦,
+   https://kjhes.github.io/ocean-science-bigdata-2026/ - Pages 설정은 이미 이 저장소에 돼 있었음)
+2. PWA 아이콘을 새 브랜드색(#3182f6)으로 다시 만들고 manifest.webmanifest를 제대로 채움
+   (192/512 PNG, id·scope, 테마색 - 예전엔 아이콘이 svg 하나뿐이고 테마색도 옛 남색이었음)
+3. PWABuilder의 공개 클라우드 빌드 API(`pwabuilder-cloudapk.azurewebsites.net/generateAppPackage`,
+   Trusted Web Activity 기술)에 배포된 manifest URL을 보내 서명된 APK·AAB를 받음 - 로컬 빌드 없이
+   서버가 대신 빌드해 줌. 서명 키(`signing.keystore`)는 그 자리에서 새로 생성됨
+4. **스토어에는 안 올림** - 구글 플레이는 신규 개인 개발자 계정에 공개 전 20명·14일 강제 비공개
+   테스트를 요구해 대회 일정과 안 맞음(정책 문제, 급하다고 해결 안 됨). 삼성/원스토어/아마존 등은
+   며칠 심사로 더 빠르지만 그래도 "오늘"은 아님 → 사용자 결정으로 APK 직접 배포 선택
+5. GitHub Release(`v1.0-android` 태그)에 APK 첨부해 공개 다운로드 링크 확보 + 설치용 QR코드 생성
+   (`dist/android/install_qr.png`). 안드로이드 첨부 API 업로드 시 한글 파일명이 curl에서
+   `CURLE_SEND_ERROR`를 냄 - 영문 파일명(`gosuonyebo.apk`)으로 바꿔서 해결
+6. `dist/android/`(APK·AAB·서명 키)는 `.gitignore`에 추가 - 서명 키가 새 나가면 이후 이 앱을
+   같은 패키지로 업데이트할 수 없게 되므로 반드시 로컬(또는 안전한 곳)에만 보관
+7. 한계: GitHub Pages가 `kjhes.github.io/이-저장소/` 하위 경로라 Digital Asset Links(도메인 소유
+   인증)를 걸 수 없음 → 앱 실행 시 상단에 얇은 브라우저 주소창이 보임(Custom Tab 폴백). 완전히
+   없애려면 `kjhes.github.io`라는 이름의 별도 저장소가 있어야 함 - 하지 않기로 함
