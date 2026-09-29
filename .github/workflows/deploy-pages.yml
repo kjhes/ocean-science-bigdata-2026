@@ -1,0 +1,20 @@
+name: app 폴더를 GitHub Pages(gh-pages)로 자동 배포
+
+on:
+  push:
+    branches: [main]
+    paths: ["app/**"]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: gh-pages 브랜치에 app 폴더 내용 배포
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./app
+          publish_branch: gh-pages
+          keep_files: true
